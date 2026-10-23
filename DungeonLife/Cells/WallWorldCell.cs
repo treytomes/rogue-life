@@ -1,6 +1,4 @@
-﻿using SadRogue.Primitives;
-
-namespace DungeonLife
+﻿namespace DungeonLife
 {
 
     /// <summary>
@@ -11,8 +9,8 @@ namespace DungeonLife
         public WallWorldCell(int x, int y)
             : base(x, y)
         {
-            ForegroundColor = Color.AnsiWhite;
-            BackgroundColor = Color.AnsiBlackBright;
+            ForegroundColor = RgbColor.AnsiWhite;
+            BackgroundColor = RgbColor.AnsiBlackBright;
             Glyph = '#';
             MovementSpeedMultiplier = 0.0f;
         }

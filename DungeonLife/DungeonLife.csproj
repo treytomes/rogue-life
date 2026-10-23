@@ -1,28 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>DungeonLife</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="ComputeSharp">
-      <HintPath>..\ComputeSharp-1.4.1\src\ComputeSharp\bin\Debug\netstandard2.1\ComputeSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="ComputeSharp.Core">
-      <HintPath>..\ComputeSharp-1.4.1\src\ComputeSharp\bin\Debug\netstandard2.1\ComputeSharp.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="ComputeSharp.Graphics">
-      <HintPath>..\ComputeSharp-1.4.1\src\ComputeSharp\bin\Debug\netstandard2.1\ComputeSharp.Graphics.dll</HintPath>
-    </Reference>
-    <Reference Include="ComputeSharp.Shaders">
-      <HintPath>..\ComputeSharp-1.4.1\src\ComputeSharp\bin\Debug\netstandard2.1\ComputeSharp.Shaders.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Avalonia" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.3" Condition="'$(Configuration)' == 'Debug'" />
+    <PackageReference Include="Prism.Core" Version="9.0.537" />
   </ItemGroup>
 
 </Project>

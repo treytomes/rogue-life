@@ -1,6 +1,4 @@
-﻿using SadConsole;
-using SadRogue.Primitives;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -12,12 +10,7 @@ namespace DungeonLife
 
         private static IRandom _random = ThreadSafeRandom.Instance;
         private Vector2 _movingDirection;
-        private Color _foregroundColor;
-
-        /// <summary>
-        /// Used to control the blink color when the entity is selected.
-        /// </summary>
-        private float _blinking = 0.0f;
+        private RgbColor _foregroundColor;
 
         #endregion
 
@@ -170,13 +163,13 @@ namespace DungeonLife
             }
         }
 
-        public Color ForegroundColor
+        public RgbColor ForegroundColor
         {
             get
             {
                 if (IsDead)
                 {
-                    return Color.White;
+                    return RgbColor.White;
                 }
                 else
                 {
@@ -240,20 +233,6 @@ namespace DungeonLife
                     // TODO: If the cell is wet, increase the wetness of this entity.
                     // TODO: Water should slow movement speed.
                 }
-            }
-        }
-
-        public void Render(CellSurface surface, TimeSpan delta)
-        {
-            surface.SetGlyph((int)Position.X, (int)Position.Y, Glyph);
-            surface.SetForeground((int)Position.X, (int)Position.Y, ForegroundColor);
-
-            if (IsSelected)
-            {
-                _blinking += delta.Milliseconds;
-                var amount = 0.5f * ((float)Math.Sin(0.01f * _blinking) + 1);
-                var bg = surface.GetBackground((int)Position.X, (int)Position.Y);
-                surface.SetBackground((int)Position.X, (int)Position.Y, Color.Lerp(bg, Color.Red, amount));
             }
         }
 

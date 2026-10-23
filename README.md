@@ -6,9 +6,11 @@ An artificial life terrarium that takes place in a roguelike-inspired dungeon.
 
 Click-and-drag with the middle mouse button on the world display to move it around.  Or you can use the scrollbars.
 
-Click on a cell to load the cell and entity details into the side panel.
+Left-click or drag on a cell to load the cell and entity details into the side panel.  Right-click a floor cell to toggle its algae.
 
 The toolbar at the top of the screen can be used to run the simulation, pause it, and then step it one tick at a time.  It also displays the current world time.  One minute passes for each tick.
+
+Press F11 to toggle fullscreen.
 
 ## Environment
 
@@ -60,14 +62,11 @@ We can see far into the distance, but not around corners.  We can smell around c
 
 ## Toolchain
 
-This project will be written in C#, currently in .NET 5.0, using the SadConsole library for graphics.
-NAudio is referenced in hopes of eventually adding some ambient noise to the environment.
-ComputeSharp is also referenced.  When I add z-levels to the dungeon I'm probably going to need to offload some of the processing onto the GPU.
+This project is written in C# on .NET 10.0, using Avalonia for the desktop UI and custom tile rendering.
 
 ## References
 
-* [SadConsole Docs](https://sadconsole.com/)
-* [SadConsole Git](https://github.com/Thraka/SadConsole)
+* [Avalonia](https://avaloniaui.net/)
 * [RogueSharp Git](https://github.com/FaronBracy/RogueSharp)
 * [GoRogue Git](https://github.com/Chris3606/GoRogue#doryen-library-libtcod)
 * [Boids](https://en.wikipedia.org/wiki/Boids)

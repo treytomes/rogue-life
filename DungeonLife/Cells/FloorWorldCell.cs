@@ -1,5 +1,4 @@
-﻿using SadRogue.Primitives;
-using System;
+﻿using System;
 using System.Numerics;
 
 namespace DungeonLife
@@ -26,8 +25,8 @@ namespace DungeonLife
             AlgaeLevel = 0.0f;
 
             Glyph = '.';
-            BackgroundColor = Color.Black;
-            ForegroundColor = Color.AnsiBlackBright;
+            BackgroundColor = RgbColor.Black;
+            ForegroundColor = RgbColor.AnsiBlackBright;
         }
 
         public override int Glyph
@@ -46,13 +45,13 @@ namespace DungeonLife
             set => base.Glyph = value;
         }
 
-        public override Color ForegroundColor
+        public override RgbColor ForegroundColor
         {
             get
             {
                 if (AlgaeLevel > 0)
                 {
-                    return new Color(0.0f, AlgaeLevel, 0.0f);
+                    return RgbColor.FromFloat(0.0f, AlgaeLevel, 0.0f);
                 }
                 else
                 {

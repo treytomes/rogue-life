@@ -1,7 +1,4 @@
-﻿using SadConsole;
-using SadRogue.Primitives;
-using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace DungeonLife
 {
@@ -20,7 +17,7 @@ namespace DungeonLife
         #region Fields
 
         protected static IRandom _random = ThreadSafeRandom.Instance;
-        private Color _backgroundColor = Color.Black;
+        private RgbColor _backgroundColor = RgbColor.Black;
 
         #endregion
 
@@ -49,19 +46,19 @@ namespace DungeonLife
         public float Temperature { get; set; } = LifeAppSettings.IdealTemperature;
         public float Humidity { get; set; } = 0;
 
-        public virtual Color BackgroundColor
+        public virtual RgbColor BackgroundColor
         {
             get
             {
                 var color = _backgroundColor;
                 if (SHOW_TEMPERATURE)
                 {
-                    var tempColor = Color.Lerp(Color.Blue, Color.Red, (Temperature - LifeAppSettings.MinimumTemperature) / LifeAppSettings.TemperatureRange);
-                    color = Color.Lerp(color, tempColor, 0.5f);
+                    var tempColor = RgbColor.Lerp(RgbColor.Blue, RgbColor.Red, (Temperature - LifeAppSettings.MinimumTemperature) / LifeAppSettings.TemperatureRange);
+                    color = RgbColor.Lerp(color, tempColor, 0.5f);
                 }
                 if (SHOW_HUMIDITY)
                 {
-                    color = Color.Lerp(color, Color.AnsiWhite, Humidity);
+                    color = RgbColor.Lerp(color, RgbColor.AnsiWhite, Humidity);
                 }
 
                 return color;
@@ -69,7 +66,7 @@ namespace DungeonLife
             set => _backgroundColor = value;
         }
 
-        public virtual Color ForegroundColor { get; set; } = Color.White;
+        public virtual RgbColor ForegroundColor { get; set; } = RgbColor.White;
         public virtual int Glyph { get; set; } = '.';
 
         #endregion
@@ -87,11 +84,6 @@ namespace DungeonLife
             {
                 Humidity = 0;
             }
-        }
-
-        public virtual void Draw(TimeSpan delta, CellSurface surface)
-        {
-            surface.SetGlyph((int)Position.X, (int)Position.Y, Glyph, ForegroundColor, BackgroundColor);
         }
 
         #endregion

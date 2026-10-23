@@ -1,5 +1,4 @@
-﻿using SadRogue.Primitives;
-using System;
+﻿using System;
 using System.ComponentModel;
 
 namespace DungeonLife
@@ -16,7 +15,7 @@ namespace DungeonLife
             MaturityAge = TimeSpan.FromDays(3);
             BabyGlyph = GLYPH_BABY;
             AdultGlyph = GLYPH_ADULT;
-            ForegroundColor = Color.Pink;
+            ForegroundColor = RgbColor.Pink;
             Metabolism = 0.0001f;
             BasePerception = 18;
 

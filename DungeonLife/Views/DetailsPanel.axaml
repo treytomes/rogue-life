@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:DungeonLife.ViewModels"
+             x:Class="DungeonLife.Views.DetailsPanel"
+             x:DataType="vm:MainWindowViewModel"
+             Width="280"
+             Background="#1f1f1f">
+  <ScrollViewer>
+    <StackPanel Margin="10" Spacing="6">
+      <TextBlock Text="{Binding CellHeader}" FontWeight="Bold" FontSize="14" />
+      <TextBlock Text="{Binding AlgaeText}" />
+      <TextBlock Text="{Binding TemperatureText}" />
+      <TextBlock Text="{Binding HumidityText}" />
+
+      <Separator Margin="0,8" />
+
+      <StackPanel Spacing="6" IsVisible="{Binding HasSelectedEntity}">
+        <TextBlock Text="{Binding EntityHeader}" FontWeight="Bold" FontSize="14" />
+        <TextBlock Text="{Binding EntityName}" Foreground="{Binding EntityNameBrush}" />
+        <TextBlock Text="{Binding EntityAgeText}" />
+        <TextBlock Text="{Binding EntityHungerText}" />
+        <ProgressBar Minimum="0" Maximum="1" Value="{Binding EntityHunger}" Height="8" />
+        <TextBlock Text="{Binding EntityThirstText}" />
+        <ProgressBar Minimum="0" Maximum="1" Value="{Binding EntityThirst}" Height="8" />
+        <TextBlock Text="{Binding EntityMetabolismText}" />
+        <TextBlock Text="{Binding EntityIsChildText}" />
+        <TextBlock Text="{Binding EntityStateText}" TextWrapping="Wrap" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
