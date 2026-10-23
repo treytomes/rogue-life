@@ -19,6 +19,10 @@
       <TextBlock Text="{Binding TimeText}"
                  VerticalAlignment="Center"
                  Margin="12,0,0,0" />
+      <TextBlock Text="{Binding PerformanceText}"
+                 VerticalAlignment="Center"
+                 Margin="16,0,0,0"
+                 Opacity="0.6" />
     </StackPanel>
     <Grid ColumnDefinitions="*,280">
       <ScrollViewer Grid.Column="0"

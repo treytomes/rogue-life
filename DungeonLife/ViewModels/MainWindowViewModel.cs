@@ -26,6 +26,7 @@ namespace DungeonLife.ViewModels
         private bool _isRunning = true;
         private bool _isStepping;
         private string _timeText = "Time: 0 days, 0 hours, 0 minutes";
+        private string _performanceText = "Tick: 0.0 ms  Render: 0.0 ms  Cells: 0";
         private string _cellHeader = "Cell Details";
         private string _algaeText = "Algae: 0";
         private string _temperatureText = "Temperature: 0C";
@@ -98,6 +99,12 @@ namespace DungeonLife.ViewModels
         {
             get => _timeText;
             private set => SetProperty(ref _timeText, value);
+        }
+
+        public string PerformanceText
+        {
+            get => _performanceText;
+            private set => SetProperty(ref _performanceText, value);
         }
 
         public string CellHeader
@@ -199,6 +206,11 @@ namespace DungeonLife.ViewModels
         #endregion
 
         #region Methods
+
+        public void UpdatePerformance(TimeSpan tickDuration, TimeSpan renderDuration, int visibleCellCount)
+        {
+            PerformanceText = $"Tick: {tickDuration.TotalMilliseconds:0.0} ms  Render: {renderDuration.TotalMilliseconds:0.0} ms  Cells: {visibleCellCount}";
+        }
 
         public void SelectCell(int x, int y)
         {

@@ -7,6 +7,7 @@ namespace DungeonLife.Views
     public partial class MainWindow : Window
     {
         private MainWindowViewModel _viewModel;
+        private WorldView _worldView;
 
         public MainWindow()
         {
@@ -18,11 +19,11 @@ namespace DungeonLife.Views
             _viewModel = new MainWindowViewModel();
             DataContext = _viewModel;
 
-            var worldView = this.FindControl<WorldView>("WorldView");
-            if (worldView != null)
+            _worldView = this.FindControl<WorldView>("WorldView");
+            if (_worldView != null)
             {
-                worldView.Simulation = _viewModel.Simulation;
-                worldView.CellSelected += OnCellSelected;
+                _worldView.Simulation = _viewModel.Simulation;
+                _worldView.CellSelected += OnCellSelected;
             }
 
             _viewModel.WorldUpdated += OnWorldUpdated;
@@ -37,8 +38,11 @@ namespace DungeonLife.Views
 
         private void OnWorldUpdated(object sender, System.EventArgs e)
         {
-            var worldView = this.FindControl<WorldView>("WorldView");
-            worldView?.InvalidateVisual();
+            _worldView?.InvalidateVisual();
+            _viewModel.UpdatePerformance(
+                _viewModel.Simulation.LastTickDuration,
+                _worldView?.LastRenderDuration ?? System.TimeSpan.Zero,
+                _worldView?.LastVisibleCellCount ?? 0);
         }
 
         private void OnKeyDown(object sender, KeyEventArgs e)
@@ -53,10 +57,9 @@ namespace DungeonLife.Views
         protected override void OnClosed(System.EventArgs e)
         {
             base.OnClosed(e);
-            var worldView = this.FindControl<WorldView>("WorldView");
-            if (worldView != null)
+            if (_worldView != null)
             {
-                worldView.CellSelected -= OnCellSelected;
+                _worldView.CellSelected -= OnCellSelected;
             }
             _viewModel.WorldUpdated -= OnWorldUpdated;
             _viewModel.Dispose();

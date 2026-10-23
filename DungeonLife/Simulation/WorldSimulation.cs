@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -40,6 +41,8 @@ namespace DungeonLife
 
         public long TickCount { get; private set; }
 
+        public TimeSpan LastTickDuration { get; private set; }
+
         #endregion
 
         #region Methods
@@ -56,12 +59,16 @@ namespace DungeonLife
 
         public void Tick()
         {
+            var start = Stopwatch.GetTimestamp();
+
             WorldTime += WorldDelta;
             AnimationTime += AnimationDelta;
             TickCount++;
 
             Parallel.ForEach(Cells, cell => cell.Update(this));
             Parallel.ForEach(Entities, entity => entity.Update(this, WorldDelta));
+
+            LastTickDuration = Stopwatch.GetElapsedTime(start);
         }
 
         #endregion

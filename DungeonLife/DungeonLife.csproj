@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AvaloniaResource Include="..\assets\oem437_8.png" Link="Assets\oem437_8.png" />
     <PackageReference Include="Avalonia" Version="12.1.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.4" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.4" />

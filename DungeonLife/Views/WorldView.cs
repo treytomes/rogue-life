@@ -2,11 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.VisualTree;
 using DungeonLife.Rendering;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 
 namespace DungeonLife.Views
 {
@@ -14,16 +13,11 @@ namespace DungeonLife.Views
     {
         #region Constants
 
-        private const double FontSize = 14.0;
-        private const float BlinkSpeed = 0.01f;
-
         #endregion
 
         #region Fields
 
-        private readonly Dictionary<long, FormattedText> _textCache = new Dictionary<long, FormattedText>();
-        private readonly Dictionary<uint, IBrush> _brushCache = new Dictionary<uint, IBrush>();
-        private readonly Typeface _typeface = new Typeface(new FontFamily("Consolas"));
+        private readonly WorldBitmapRenderer _renderer;
         private bool _isSelecting;
         private bool _isPanning;
         private bool _rightToggled;
@@ -43,6 +37,8 @@ namespace DungeonLife.Views
             Height = LifeAppSettings.WorldHeight * CellHeight;
             Focusable = true;
             ClipToBounds = true;
+            RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
+            _renderer = new WorldBitmapRenderer((int)CellWidth, (int)CellHeight);
         }
 
         #endregion
@@ -57,6 +53,8 @@ namespace DungeonLife.Views
 
         public double CellWidth { get; } = LifeAppSettings.GlyphWidth;
         public double CellHeight { get; } = LifeAppSettings.GlyphHeight;
+        public TimeSpan LastRenderDuration => _renderer.LastRenderDuration;
+        public int LastVisibleCellCount => _renderer.LastVisibleCellCount;
 
         internal WorldSimulation Simulation { get; set; }
 
@@ -74,120 +72,16 @@ namespace DungeonLife.Views
                 return;
             }
 
-            context.FillRectangle(Brushes.Black, new Rect(0, 0, Bounds.Width, Bounds.Height));
-
             var scrollViewer = GetScrollViewer();
             var offset = scrollViewer?.Offset ?? default;
             var viewportWidth = scrollViewer?.Viewport.Width ?? Bounds.Width;
             var viewportHeight = scrollViewer?.Viewport.Height ?? Bounds.Height;
 
-            var startX = Math.Max(0, (int)Math.Floor(offset.X / CellWidth) - 1);
-            var endX = Math.Min(LifeAppSettings.WorldWidth - 1, (int)Math.Ceiling((offset.X + viewportWidth) / CellWidth) + 1);
-            var startY = Math.Max(0, (int)Math.Floor(offset.Y / CellHeight) - 1);
-            var endY = Math.Min(LifeAppSettings.WorldHeight - 1, (int)Math.Ceiling((offset.Y + viewportHeight) / CellHeight) + 1);
-
-            for (var y = startY; y <= endY; y++)
+            using (context.PushClip(new Rect(offset.X, offset.Y, viewportWidth, viewportHeight)))
             {
-                for (var x = startX; x <= endX; x++)
-                {
-                    var cell = simulation.Cells[x, y];
-                    if (cell == null)
-                    {
-                        continue;
-                    }
-
-                    var glyph = GetGlyph(cell, simulation);
-                    DrawCell(context, x, y, glyph, cell.ForegroundColor, cell.BackgroundColor);
-                }
+                context.FillRectangle(Brushes.Black, new Rect(offset.X, offset.Y, viewportWidth, viewportHeight));
+                _renderer.Render(context, simulation, offset.X, offset.Y, viewportWidth, viewportHeight);
             }
-
-            foreach (var entity in simulation.Entities)
-            {
-                var x = (int)entity.Position.X;
-                var y = (int)entity.Position.Y;
-                if ((x < startX) || (x > endX) || (y < startY) || (y > endY))
-                {
-                    continue;
-                }
-
-                var background = simulation.Cells[x, y]?.BackgroundColor ?? RgbColor.Black;
-                if (entity.IsSelected)
-                {
-                    var amount = 0.5f * ((float)Math.Sin(BlinkSpeed * simulation.AnimationTime.TotalMilliseconds) + 1.0f);
-                    background = RgbColor.Lerp(background, RgbColor.Red, amount);
-                }
-
-                DrawCell(context, x, y, entity.Glyph, entity.ForegroundColor, background);
-            }
-        }
-
-        private void DrawCell(DrawingContext context, int x, int y, int glyph, RgbColor foreground, RgbColor background)
-        {
-            var bounds = new Rect(x * CellWidth, y * CellHeight, CellWidth, CellHeight);
-            context.FillRectangle(GetBrush(background), bounds);
-
-            var text = GetText(glyph, foreground);
-            var textY = y * CellHeight + (CellHeight - text.Height) / 2.0;
-            context.DrawText(text, new Point(x * CellWidth, textY));
-        }
-
-        private static int GetGlyph(WorldCell cell, WorldSimulation simulation)
-        {
-            if (cell is WaterSourceCell)
-            {
-                var phase = (int)(simulation.AnimationTime.TotalMilliseconds / WaterSourceCell.ANIMATE_MS);
-                return (phase % 2 == 0) ? WaterSourceCell.GLYPH_WATER1 : WaterSourceCell.GLYPH_WATER2;
-            }
-
-            return cell.Glyph;
-        }
-
-        private FormattedText GetText(int glyph, RgbColor color)
-        {
-            var quantized = Quantize(color);
-            var key = ((long)(uint)glyph << 32) | Pack(quantized);
-
-            if (!_textCache.TryGetValue(key, out var text))
-            {
-                text = new FormattedText(
-                    GlyphMap.ToUnicode(glyph),
-                    CultureInfo.InvariantCulture,
-                    FlowDirection.LeftToRight,
-                    _typeface,
-                    FontSize,
-                    GetBrush(quantized));
-                _textCache.Add(key, text);
-            }
-
-            return text;
-        }
-
-        private IBrush GetBrush(RgbColor color)
-        {
-            var quantized = Quantize(color);
-            var key = Pack(quantized);
-
-            if (!_brushCache.TryGetValue(key, out var brush))
-            {
-                brush = new SolidColorBrush(Color.FromArgb(quantized.A, quantized.R, quantized.G, quantized.B));
-                _brushCache.Add(key, brush);
-            }
-
-            return brush;
-        }
-
-        private static RgbColor Quantize(RgbColor color)
-        {
-            return new RgbColor(
-                (byte)(color.R & 0xF8),
-                (byte)(color.G & 0xF8),
-                (byte)(color.B & 0xF8),
-                color.A);
-        }
-
-        private static uint Pack(RgbColor color)
-        {
-            return ((uint)color.A << 24) | ((uint)color.R << 16) | ((uint)color.G << 8) | color.B;
         }
 
         #endregion
