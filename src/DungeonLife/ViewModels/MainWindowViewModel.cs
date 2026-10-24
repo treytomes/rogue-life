@@ -1,6 +1,7 @@
 using Avalonia.Media;
 using Avalonia.Threading;
 using DungeonLife.Views;
+using DungeonLife.Hosting;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
@@ -48,7 +49,7 @@ namespace DungeonLife.ViewModels
 
         #region Constructors
 
-        public MainWindowViewModel(WorldSimulation simulation)
+        public MainWindowViewModel(WorldSimulation simulation, AppStartupSettings startupSettings)
         {
             Simulation = simulation;
 
@@ -58,7 +59,7 @@ namespace DungeonLife.ViewModels
 
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(100)
+                Interval = TimeSpan.FromMilliseconds(startupSettings.TickIntervalMilliseconds)
             };
             _timer.Tick += OnTimerTick;
             _timer.Start();

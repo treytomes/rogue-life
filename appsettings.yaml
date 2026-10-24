@@ -1,0 +1,13 @@
+# Defaults for the desktop application. Kept at the repository root so local runs and
+# future command-line harnesses can share one configuration file.
+Simulation:
+  # Applied to the simulation RNG once run-owned seeded randomness is wired in.
+  Seed: 1
+
+Runtime:
+  # Wall-clock delay between UI-driven model ticks. Each tick remains one simulated minute.
+  TickIntervalMilliseconds: 100
+
+Serilog:
+  # Consumed by the Serilog integration task; command-line --log-level will override this.
+  MinimumLevel: Information

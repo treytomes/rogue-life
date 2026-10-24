@@ -62,7 +62,7 @@ explain why it changed.
   Prism, rendering, and desktop concerns out of Core; have the UI reference Core.
 - [x] Add Generic Host startup to the Avalonia app and use Microsoft DI for
   composition. Keep host setup in the executable shell rather than Core.
-- [ ] Add YAML `appsettings.yaml` configuration for simulation defaults and
+- [x] Add YAML `appsettings.yaml` configuration for simulation defaults and
   runtime settings, with command-line overrides for run-specific values such as
   seed, configuration path, and log level.  The `appsettings.yaml` file should be stored and referenced from the repository root.
 - [ ] Add Microsoft.Extensions.Logging backed by Serilog, including console and

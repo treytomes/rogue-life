@@ -12,6 +12,8 @@ namespace DungeonLife
     {
         private IHost _host;
 
+        internal static StartupOptions StartupOptions { get; set; } = new StartupOptions(null, null, null);
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -21,7 +23,7 @@ namespace DungeonLife
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                _host = AppHostBuilder.Build();
+                _host = AppHostBuilder.Build(StartupOptions);
                 _host.Start();
 
                 desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
