@@ -14,3 +14,8 @@ Serilog:
   # Relative log paths are resolved from the directory containing this configuration file.
   LogDirectory: logs
   RetainedFileCountLimit: 14
+
+Harness:
+  # A short default keeps a manual headless invocation quick; pass --ticks for longer runs.
+  Ticks: 1
+  Generator: cavern

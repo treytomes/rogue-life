@@ -67,12 +67,12 @@ explain why it changed.
   seed, configuration path, and log level.  The `appsettings.yaml` file should be stored and referenced from the repository root.
 - [x] Add Microsoft.Extensions.Logging backed by Serilog, including console and
   rolling file output, and log the resolved run configuration and seed.
-- [ ] Add a console harness that references `DungeonLife.Core`, builds its own
+- [x] Add a console harness that references `DungeonLife.Core`, builds its own
   Generic Host, and can run without Avalonia or a desktop session. Share
   configuration and logging conventions with the UI while keeping host builders
   in their respective executable projects.
 - [ ] Replace the process-wide `ThreadSafeRandom` usage with an injected,
-  seedable random source owned by a simulation run. Record the seed with results.
+  seedable random source owned by a simulation run. Record the seed with results.  Review and copy the `~\projects\learning\src\WormForaging.Core\Rng\Pcg32Random.cs` class along with it's interface.
 - [ ] Make random streams independent of thread scheduling. Prefer stable streams
   keyed by run seed plus cell/entity identity and tick, or use a deterministic
   single-threaded update until an equivalent parallel scheme is established.
@@ -140,8 +140,8 @@ explain why it changed.
   expected state transitions.
 - [ ] Add configurable experiment parameters and world dimensions; remove
   hard-coded 256-wide placement ranges from generators.
-- [ ] Add a headless runner that accepts a scenario, model version, seed,
-  parameters, and tick count, then emits a machine-readable result.
+- [ ] Extend the basic headless runner to accept scenarios, model version,
+  parameters, and tick count, then emit a machine-readable result.
 - [ ] Record time-series metrics: algae biomass and occupied cells, temperature
   and humidity distributions, organism counts by age/state, births, deaths,
   resource intake, and extinction time.

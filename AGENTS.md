@@ -5,8 +5,9 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 ## Build and run
 
 - Build: `dotnet build DungeonLife.sln`
-- Run: `dotnet run --project src/DungeonLife`
-- It is a GUI app (`WinExe`) with no headless mode. Verify changes with a build and a short manual run.
+- Run the UI: `dotnet run --project src/DungeonLife`
+- Run a headless simulation: `dotnet run --project src/DungeonLife.Harness -- --ticks 1`
+- Verify changes with a build and a short UI or harness run as appropriate.
 - Do not add `DOTNET_ROLL_FORWARD`; the project targets the installed `net10.0` runtime.
 
 ## Simulation architecture
@@ -14,6 +15,8 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 - `src/DungeonLife/Program.cs` builds the Avalonia app; `src/DungeonLife/App.axaml.cs` creates `Views/MainWindow`.
 - `src/DungeonLife.Core/` contains the platform-neutral simulation model, cells, entities, behaviors, and world generators. Keep Avalonia and Prism types out of Core.
 - `src/DungeonLife/Hosting/AppHostBuilder.cs` is the UI composition root. The Generic Host owns DI registrations; keep hosting and container dependencies out of Core.
+- `src/DungeonLife.Harness/` is the console entry point for headless simulation runs. It references Core and owns a separate host builder; it must not reference Avalonia or Prism.
+- Run a headless sample with `dotnet run --project src/DungeonLife.Harness -- --ticks 1`. It writes a JSON summary to stdout and sends logs to stderr / the configured rolling file. The seed is recorded as configuration metadata until the run-owned RNG work is completed.
 - The repository-root `appsettings.yaml` is found by walking up from the executable directory; `--config`, `--seed`, and `--log-level` are parsed at startup. The UI tick interval is runtime-configurable, while each model tick remains one simulated minute.
 - Microsoft.Extensions.Logging is routed through Serilog. Keep the console sink and daily rolling file sink configured by `Serilog` in the root YAML; relative `LogDirectory` paths resolve beside the active configuration file.
 - `src/DungeonLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
