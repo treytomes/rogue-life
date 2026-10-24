@@ -1,6 +1,7 @@
 namespace DungeonLife.Harness.Simulation;
 
 internal sealed record RunSummary(
+    int RulesVersion,
     string Generator,
     ulong? RunSeed,
     string SeedSource,
@@ -14,6 +15,8 @@ internal sealed record RunSummary(
     double AverageHumidity,
     int EntityCount,
     int LivingEntityCount,
+    string StateHash,
+    bool? ReplayMatched,
     long[] EntityIds,
     long[] FirstTickPriorityIds,
     long[] SecondTickPriorityIds);

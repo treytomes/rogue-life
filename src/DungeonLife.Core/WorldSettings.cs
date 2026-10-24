@@ -5,6 +5,9 @@ namespace DungeonLife
     /// </summary>
     public static class WorldSettings
     {
+        /// <summary>Increment when model rules or state semantics change.</summary>
+        public const int RulesVersion = 1;
+
         public static float MinimumTemperature { get; } = 0.0f;
         public static float MaximumTemperature { get; } = 50.0f;
         public static float TemperatureRange { get; } = MaximumTemperature - MinimumTemperature;

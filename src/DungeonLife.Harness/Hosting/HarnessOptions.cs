@@ -5,7 +5,8 @@ internal sealed record HarnessOptions(
     ulong? Seed,
     string? Generator,
     string? ConfigPath,
-    string? LogLevel);
+    string? LogLevel,
+    bool VerifyReplay);
 
 internal enum SeedSource
 {
@@ -21,5 +22,6 @@ internal sealed record HarnessStartupSettings(
     SeedSource SeedSource,
     string Generator,
     string LogLevel,
-    string? ConfigurationFile);
+    string? ConfigurationFile,
+    bool VerifyReplay);
 

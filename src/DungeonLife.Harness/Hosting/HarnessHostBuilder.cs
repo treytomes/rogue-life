@@ -87,7 +87,7 @@ internal static class HarnessHostBuilder
         }
 
         string logLevel = options.LogLevel ?? configuration["Serilog:MinimumLevel"] ?? "Information";
-        return new HarnessStartupSettings(ticks, seed, seedSource, generator, logLevel, configFile);
+        return new HarnessStartupSettings(ticks, seed, seedSource, generator, logLevel, configFile, options.VerifyReplay);
     }
 
     private static int ParseInt(string? value, int defaultValue, string key)

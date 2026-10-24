@@ -30,6 +30,10 @@ internal static class Program
         {
             Description = "Logging minimum level override (Verbose, Debug, Information, Warning, Error, Fatal).",
         };
+        Option<bool> verifyReplayOption = new("--verify-replay")
+        {
+            Description = "Run the same seeded scenario a second time and require an identical state hash.",
+        };
 
         RootCommand root = new("Headless DungeonLife simulation runner.")
         {
@@ -38,6 +42,7 @@ internal static class Program
             generatorOption,
             configOption,
             logLevelOption,
+            verifyReplayOption,
         };
 
         root.SetAction(parseResult =>
@@ -47,7 +52,8 @@ internal static class Program
                 parseResult.GetValue(seedOption),
                 parseResult.GetValue(generatorOption),
                 parseResult.GetValue(configOption),
-                parseResult.GetValue(logLevelOption));
+                parseResult.GetValue(logLevelOption),
+                parseResult.GetValue(verifyReplayOption));
 
             using IHost host = HarnessHostBuilder.Build(options);
             host.Start();

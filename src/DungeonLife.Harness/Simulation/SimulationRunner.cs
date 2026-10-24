@@ -2,6 +2,7 @@ using DungeonLife.Harness.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Text.Json;
+using System.Security.Cryptography;
 
 namespace DungeonLife.Harness.Simulation;
 
@@ -24,13 +25,34 @@ internal sealed class SimulationRunner(
             simulation.Tick();
         }
 
-        RunSummary summary = CreateSummary();
+        string stateHash = SimulationStateHasher.Compute(simulation, settings);
+        bool? replayMatched = null;
+        if (settings.VerifyReplay)
+        {
+            WorldGenerator generator = settings.Generator switch
+            {
+                "cavern" => new CavernGenerator(),
+                "spacious" => new SpaciousCavernGenerator(),
+                _ => throw new InvalidOperationException($"Unsupported world generator '{settings.Generator}'."),
+            };
+            var replay = new WorldSimulation(generator, new Pcg32Random(settings.Seed!.Value), settings.Seed.Value);
+            for (int i = 0; i < settings.Ticks; i++) replay.Tick();
+            string replayHash = SimulationStateHasher.Compute(replay, settings);
+            replayMatched = CryptographicOperations.FixedTimeEquals(
+                Convert.FromHexString(stateHash), Convert.FromHexString(replayHash));
+            if (replayMatched != true)
+            {
+                throw new InvalidOperationException($"Replay state hash mismatch: {stateHash} != {replayHash}");
+            }
+        }
+
+        RunSummary summary = CreateSummary(stateHash, replayMatched);
         Console.Out.WriteLine(JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
         logger.LogInformation("Headless simulation completed after {Ticks} ticks", simulation.TickCount);
         return 0;
     }
 
-    private RunSummary CreateSummary()
+    private RunSummary CreateSummary(string stateHash, bool? replayMatched)
     {
         int cellCount = 0;
         int floorCellCount = 0;
@@ -84,6 +106,7 @@ internal sealed class SimulationRunner(
             }
         }
         return new RunSummary(
+            WorldSettings.RulesVersion,
             settings.Generator,
             settings.Seed,
             settings.SeedSource.ToString(),
@@ -97,6 +120,8 @@ internal sealed class SimulationRunner(
             cellCount == 0 ? 0 : totalHumidity / cellCount,
             entityCount,
             livingEntityCount,
+            stateHash,
+            replayMatched,
             entityIds,
             firstTickPriorityIds,
             secondTickPriorityIds);

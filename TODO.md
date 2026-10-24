@@ -83,7 +83,7 @@ explain why it changed.
 - [x] Make entity decisions from a defined snapshot, then resolve their intents
   (movement, eating, drinking, reproduction) deterministically. Avoid concurrent
   mutation of neighboring cells and entities.
-- [ ] Add a replay check: the same model version, seed, parameters, and tick count
+- [x] Add a replay check: the same model version, seed, parameters, and tick count
   must produce the same state hash, including when rendering is disabled.
 - [ ] Add a saved-state format with model version, seed/RNG state, tick number,
   world clock, cell state, and entity state; verify save/load continuation against
