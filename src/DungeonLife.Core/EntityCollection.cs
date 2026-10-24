@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    class EntityCollection : IEnumerable<Entity>
+    public class EntityCollection : IEnumerable<Entity>
     {
         private readonly List<Entity> _entities;
 

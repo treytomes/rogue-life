@@ -6,7 +6,7 @@ namespace DungeonLife
     /// <summary>
     /// Algae spreads over floors.  Floors also act as minor heat sinks.
     /// </summary>
-    class FloorWorldCell : WorldCell
+    public class FloorWorldCell : WorldCell
     {
         private const int ALGAE_SEARCH_RADIUS = 1;
         private const float SPONTANEOUS_LIFE_CHANCE = 0.01f;
@@ -72,7 +72,7 @@ namespace DungeonLife
         private float ConwayFrameRule(float cellValue, float regionValue)
         {
             // This gets small as the distance from ideal increases.
-            var tempDistance = 2 * (Temperature - LifeAppSettings.IdealTemperature);
+            var tempDistance = 2 * (Temperature - WorldSettings.IdealTemperature);
             if (tempDistance != 0)
             {
                 tempDistance = 1.0f / tempDistance;
@@ -146,7 +146,7 @@ namespace DungeonLife
             {
                 // A cell will slowly age and die.
                 // The cell should age slower in dry climates.
-                if ((Temperature - LifeAppSettings.IdealTemperature) > 0.001f)
+                if ((Temperature - WorldSettings.IdealTemperature) > 0.001f)
                 {
                     // Go ahead and age it if it gets too hot.  Frozen algae lasts forever.
                     newValue -= AGE_RATE;
@@ -189,11 +189,11 @@ namespace DungeonLife
             Temperature += (1.0f - Humidity) * deltaTemp;
 
             // Floors act as a heat sink.
-            if (Temperature < LifeAppSettings.IdealTemperature)
+            if (Temperature < WorldSettings.IdealTemperature)
             {
                 Temperature += HEAT_SINK_VALUE;
             }
-            else if (Temperature > LifeAppSettings.IdealTemperature)
+            else if (Temperature > WorldSettings.IdealTemperature)
             {
                 Temperature -= HEAT_SINK_VALUE;
             }

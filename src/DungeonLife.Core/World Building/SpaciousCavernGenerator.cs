@@ -1,6 +1,6 @@
 ﻿namespace DungeonLife
 {
-    class SpaciousCavernGenerator : WorldGenerator
+    public class SpaciousCavernGenerator : WorldGenerator
     {
         public override void BuildWorld(IWorldState world)
         {

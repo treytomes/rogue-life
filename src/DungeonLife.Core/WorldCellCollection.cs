@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    class WorldCellCollection : IEnumerable<WorldCell>
+    public class WorldCellCollection : IEnumerable<WorldCell>
     {
         private readonly WorldCell[,] _cells;
 

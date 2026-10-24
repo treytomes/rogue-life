@@ -33,8 +33,8 @@ namespace DungeonLife.Views
 
         public WorldView()
         {
-            Width = LifeAppSettings.WorldWidth * CellWidth;
-            Height = LifeAppSettings.WorldHeight * CellHeight;
+            Width = WorldSettings.WorldWidth * CellWidth;
+            Height = WorldSettings.WorldHeight * CellHeight;
             Focusable = true;
             ClipToBounds = true;
             RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
@@ -200,7 +200,7 @@ namespace DungeonLife.Views
             var x = (int)(point.X / CellWidth);
             var y = (int)(point.Y / CellHeight);
 
-            if ((x < 0) || (x >= LifeAppSettings.WorldWidth) || (y < 0) || (y >= LifeAppSettings.WorldHeight))
+            if ((x < 0) || (x >= WorldSettings.WorldWidth) || (y < 0) || (y >= WorldSettings.WorldHeight))
             {
                 return;
             }

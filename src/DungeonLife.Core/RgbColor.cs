@@ -6,7 +6,7 @@ namespace DungeonLife
     /// A UI-agnostic 32-bit color. Values match the palette used by the old
     /// SadRogue.Primitives color type.
     /// </summary>
-    readonly struct RgbColor
+    public readonly struct RgbColor
     {
         public RgbColor(byte r, byte g, byte b, byte a = 255)
         {

@@ -4,7 +4,7 @@ using System.ComponentModel;
 namespace DungeonLife
 {
     [DisplayName("Oink")]
-    class OinkEntity : Entity
+    public class OinkEntity : Entity
     {
         private const int GLYPH_BABY = 148;
         private const int GLYPH_ADULT = 153;

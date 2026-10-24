@@ -5,7 +5,7 @@ namespace DungeonLife
     /// <summary>
     /// A wall that emanates heat throughout the day.
     /// </summary>
-    class BorderWorldCell : WallWorldCell
+    public class BorderWorldCell : WallWorldCell
     {
         public BorderWorldCell(int x, int y)
             : base(x, y)
@@ -18,7 +18,7 @@ namespace DungeonLife
             //Temperature = -12.5f * (float)Math.Cos(state.WorldTime.Hours / 3.8) + 12.5f + 10;
 
             // Temperature will range from 0C to 50C over the course of the day.
-            Temperature = LifeAppSettings.TemperatureRange / 2.0f * (-1 * (float)Math.Cos(state.WorldTime.Hours / 3.8) + 1);
+            Temperature = WorldSettings.TemperatureRange / 2.0f * (-1 * (float)Math.Cos(state.WorldTime.Hours / 3.8) + 1);
         }
     }
 }

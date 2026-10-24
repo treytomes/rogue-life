@@ -3,7 +3,7 @@
     /// <summary>
     /// Water defies temperature changes, and will spread humidity as it warms up.
     /// </summary>
-    class WaterSourceCell : WorldCell
+    public class WaterSourceCell : WorldCell
     {
         public const int GLYPH_WATER1 = '~';
         public const int GLYPH_WATER2 = 247;
@@ -22,7 +22,7 @@
         {
             base.Update(state);
 
-            var tempDistance = Temperature - LifeAppSettings.IdealTemperature;
+            var tempDistance = Temperature - WorldSettings.IdealTemperature;
             // Water will evaporate or condense depending on how hot or cold it is.
             if ((tempDistance > 0) && (Humidity < 1))
             {
@@ -45,11 +45,11 @@
 
             // Water act as a temperature stabilizer; much more so than floors.
             Temperature = (2 * Temperature + newTemp) / 3.0f;
-            if (Temperature > LifeAppSettings.IdealTemperature)
+            if (Temperature > WorldSettings.IdealTemperature)
             {
                 Temperature -= 0.001f;
             }
-            else if (Temperature < LifeAppSettings.IdealTemperature)
+            else if (Temperature < WorldSettings.IdealTemperature)
             {
                 Temperature += 0.001f;
             }

@@ -2,7 +2,7 @@
 
 namespace DungeonLife
 {
-    abstract class WorldCell
+    public abstract class WorldCell
     {
         #region Constants
 
@@ -43,7 +43,7 @@ namespace DungeonLife
             }
         }
 
-        public float Temperature { get; set; } = LifeAppSettings.IdealTemperature;
+        public float Temperature { get; set; } = WorldSettings.IdealTemperature;
         public float Humidity { get; set; } = 0;
 
         public virtual RgbColor BackgroundColor
@@ -53,7 +53,7 @@ namespace DungeonLife
                 var color = _backgroundColor;
                 if (SHOW_TEMPERATURE)
                 {
-                    var tempColor = RgbColor.Lerp(RgbColor.Blue, RgbColor.Red, (Temperature - LifeAppSettings.MinimumTemperature) / LifeAppSettings.TemperatureRange);
+                    var tempColor = RgbColor.Lerp(RgbColor.Blue, RgbColor.Red, (Temperature - WorldSettings.MinimumTemperature) / WorldSettings.TemperatureRange);
                     color = RgbColor.Lerp(color, tempColor, 0.5f);
                 }
                 if (SHOW_HUMIDITY)

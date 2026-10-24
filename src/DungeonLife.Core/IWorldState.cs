@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    interface IWorldState
+    public interface IWorldState
     {
         TimeSpan WorldTime { get; set; }
         WorldCellCollection Cells { get; }

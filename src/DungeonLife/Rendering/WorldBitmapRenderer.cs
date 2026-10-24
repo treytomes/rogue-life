@@ -53,8 +53,8 @@ namespace DungeonLife.Rendering
             var roundedOffsetX = (int)Math.Round(offsetX);
             var roundedOffsetY = (int)Math.Round(offsetY);
 
-            var worldPixelWidth = LifeAppSettings.WorldWidth * CellWidth;
-            var worldPixelHeight = LifeAppSettings.WorldHeight * CellHeight;
+            var worldPixelWidth = WorldSettings.WorldWidth * CellWidth;
+            var worldPixelHeight = WorldSettings.WorldHeight * CellHeight;
             var width = Math.Max(1, Math.Min((int)Math.Ceiling(viewportWidth), worldPixelWidth));
             var height = Math.Max(1, Math.Min((int)Math.Ceiling(viewportHeight), worldPixelHeight));
 
@@ -62,9 +62,9 @@ namespace DungeonLife.Rendering
             ClearBuffer();
 
             var startX = Math.Max(0, (int)Math.Floor((double)roundedOffsetX / CellWidth) - 1);
-            var endX = Math.Min(LifeAppSettings.WorldWidth - 1, (int)Math.Ceiling((double)(roundedOffsetX + width) / CellWidth) + 1);
+            var endX = Math.Min(WorldSettings.WorldWidth - 1, (int)Math.Ceiling((double)(roundedOffsetX + width) / CellWidth) + 1);
             var startY = Math.Max(0, (int)Math.Floor((double)roundedOffsetY / CellHeight) - 1);
-            var endY = Math.Min(LifeAppSettings.WorldHeight - 1, (int)Math.Ceiling((double)(roundedOffsetY + height) / CellHeight) + 1);
+            var endY = Math.Min(WorldSettings.WorldHeight - 1, (int)Math.Ceiling((double)(roundedOffsetY + height) / CellHeight) + 1);
 
             var visibleCellCount = 0;
             for (var y = startY; y <= endY; y++)

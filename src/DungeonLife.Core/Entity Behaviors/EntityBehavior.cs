@@ -6,20 +6,20 @@ using System.Reflection;
 
 namespace DungeonLife
 {
-    class SearchResult
+    public class SearchResult
     {
         public Vector2 Position;
         public float Distance;
         public float Value;
     }
 
-    class SearchResult<TCell> : SearchResult
+    public class SearchResult<TCell> : SearchResult
         where TCell : WorldCell
     {
         public TCell Cell;
     }
 
-    abstract class EntityBehavior
+    public abstract class EntityBehavior
     {
         protected static IRandom _random = ThreadSafeRandom.Instance;
         protected readonly Entity _entity;

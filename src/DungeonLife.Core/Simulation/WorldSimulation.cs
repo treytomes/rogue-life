@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DungeonLife
 {
-    class WorldSimulation : IWorldState
+    public class WorldSimulation : IWorldState
     {
         #region Constants
 
@@ -18,7 +18,7 @@ namespace DungeonLife
 
         public WorldSimulation(WorldGenerator generator)
         {
-            Cells = new WorldCellCollection(LifeAppSettings.WorldWidth, LifeAppSettings.WorldHeight);
+            Cells = new WorldCellCollection(WorldSettings.WorldWidth, WorldSettings.WorldHeight);
             Entities = new EntityCollection();
 
             generator.Generate(this);

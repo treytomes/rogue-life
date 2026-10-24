@@ -57,6 +57,20 @@ explain why it changed.
 
 ## Phase 1: Make runs reproducible
 
+- [x] Extract simulation rules, world state, entities, cells, behaviors, and
+  generators into a platform-neutral `DungeonLife.Core` project. Keep Avalonia,
+  Prism, rendering, and desktop concerns out of Core; have the UI reference Core.
+- [ ] Add Generic Host startup to the Avalonia app and use Microsoft DI for
+  composition. Keep host setup in the executable shell rather than Core.
+- [ ] Add YAML `appsettings.yaml` configuration for simulation defaults and
+  runtime settings, with command-line overrides for run-specific values such as
+  seed, configuration path, and log level.
+- [ ] Add Microsoft.Extensions.Logging backed by Serilog, including console and
+  rolling file output, and log the resolved run configuration and seed.
+- [ ] Add a console harness that references `DungeonLife.Core`, builds its own
+  Generic Host, and can run without Avalonia or a desktop session. Share
+  configuration and logging conventions with the UI while keeping host builders
+  in their respective executable projects.
 - [ ] Replace the process-wide `ThreadSafeRandom` usage with an injected,
   seedable random source owned by a simulation run. Record the seed with results.
 - [ ] Make random streams independent of thread scheduling. Prefer stable streams

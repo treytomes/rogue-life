@@ -4,7 +4,7 @@
     /// <summary>
     /// A wall cannot be passed.
     /// </summary>
-    class WallWorldCell : WorldCell
+    public class WallWorldCell : WorldCell
     {
         public WallWorldCell(int x, int y)
             : base(x, y)
@@ -23,11 +23,11 @@
 
             // Walls act as a temperature stabilizer; much more so than water.
             Temperature = (5 * Temperature + newTemp) / 6.0f;
-            if (Temperature > LifeAppSettings.IdealTemperature)
+            if (Temperature > WorldSettings.IdealTemperature)
             {
                 Temperature -= 0.001f;
             }
-            else if (Temperature < LifeAppSettings.IdealTemperature)
+            else if (Temperature < WorldSettings.IdealTemperature)
             {
                 Temperature += 0.001f;
             }

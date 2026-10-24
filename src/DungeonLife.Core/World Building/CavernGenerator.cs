@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DungeonLife
 {
-    class CavernGenerator : WorldGenerator
+    public class CavernGenerator : WorldGenerator
     {
 		#region Constants
 

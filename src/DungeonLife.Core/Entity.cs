@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    class Entity
+    public class Entity
     {
         #region Fields
 
