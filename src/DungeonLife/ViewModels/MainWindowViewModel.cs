@@ -48,10 +48,9 @@ namespace DungeonLife.ViewModels
 
         #region Constructors
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(WorldSimulation simulation)
         {
-            Simulation = new WorldSimulation(new CavernGenerator());
-            //Simulation = new WorldSimulation(new SpaciousCavernGenerator());
+            Simulation = simulation;
 
             RunCommand = new DelegateCommand(Run, () => !IsRunning);
             PauseCommand = new DelegateCommand(Pause, () => IsRunning);

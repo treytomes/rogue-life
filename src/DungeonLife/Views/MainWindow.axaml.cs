@@ -6,7 +6,7 @@ namespace DungeonLife.Views
 {
     public partial class MainWindow : Window
     {
-        private MainWindowViewModel _viewModel;
+        private readonly MainWindowViewModel _viewModel;
         private WorldView _worldView;
 
         public MainWindow()
@@ -15,8 +15,11 @@ namespace DungeonLife.Views
 
             Width = LifeAppSettings.InitialWindowWidth;
             Height = LifeAppSettings.InitialWindowHeight;
+        }
 
-            _viewModel = new MainWindowViewModel();
+        public MainWindow(MainWindowViewModel viewModel) : this()
+        {
+            _viewModel = viewModel;
             DataContext = _viewModel;
 
             _worldView = this.FindControl<WorldView>("WorldView");
@@ -61,8 +64,10 @@ namespace DungeonLife.Views
             {
                 _worldView.CellSelected -= OnCellSelected;
             }
-            _viewModel.WorldUpdated -= OnWorldUpdated;
-            _viewModel.Dispose();
+            if (_viewModel != null)
+            {
+                _viewModel.WorldUpdated -= OnWorldUpdated;
+            }
         }
     }
 }

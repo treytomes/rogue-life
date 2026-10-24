@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Dungeon Life is a single-project .NET 10 desktop simulation/game built on Avalonia 12.1.4. There are no tests, lint/format config, or CI; `dotnet build` is the only automated check.
+Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a platform-neutral simulation Core project. There are no tests, lint/format config, or CI; `dotnet build` is the only automated check.
 
 ## Build and run
 
@@ -13,6 +13,7 @@ Dungeon Life is a single-project .NET 10 desktop simulation/game built on Avalon
 
 - `src/DungeonLife/Program.cs` builds the Avalonia app; `src/DungeonLife/App.axaml.cs` creates `Views/MainWindow`.
 - `src/DungeonLife.Core/` contains the platform-neutral simulation model, cells, entities, behaviors, and world generators. Keep Avalonia and Prism types out of Core.
+- `src/DungeonLife/Hosting/AppHostBuilder.cs` is the UI composition root. The Generic Host owns DI registrations; keep hosting and container dependencies out of Core.
 - `src/DungeonLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
   - On each timer tick, call `WorldSimulation.Tick()` when running or stepping.
   - `Tick()` advances `WorldTime` by one minute, advances `AnimationTime`/`TickCount`, then calls `Update` on every cell and entity via `Parallel.ForEach` (65,536 cells).
