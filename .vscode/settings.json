@@ -4,6 +4,7 @@
         "Avalonia",
         "axaml",
         "Lerp",
-        "MVVM"
+        "MVVM",
+        "seedable"
     ]
 }
