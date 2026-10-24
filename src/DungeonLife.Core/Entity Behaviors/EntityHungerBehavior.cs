@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
@@ -24,7 +24,7 @@ namespace DungeonLife
             _eatSpeed = eatSpeed;
         }
 
-        private bool IsHungry { get => _random.NextDouble() < _entity.Hunger; }
+        private bool IsHungry { get => Random.NextDouble() < _entity.Hunger; }
 
         private bool Eat(WorldCell cell)
         {
@@ -145,3 +145,4 @@ namespace DungeonLife
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
@@ -21,8 +21,8 @@ namespace DungeonLife
 
     public abstract class EntityBehavior
     {
-        protected static IRandom _random = ThreadSafeRandom.Instance;
         protected readonly Entity _entity;
+        protected IRandom Random => _entity.Random;
 
         public EntityBehavior(Entity entity)
         {
@@ -93,3 +93,5 @@ namespace DungeonLife
         }
     }
 }
+
+

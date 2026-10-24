@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -51,7 +51,7 @@ namespace DungeonLife
                 if (delta.TotalDays < 0)
                 {
                     var deathPercent = _entity.Age.TotalDays / MaxLifeSpan.TotalDays - 1;
-                    if (_random.NextDouble() > (1 - deathPercent))  // Increased chance of random death the farther past it's lifespan the entity gets.
+                    if (Random.NextDouble() > (1 - deathPercent))  // Increased chance of random death the farther past it's lifespan the entity gets.
                     {
                         // You're dead!
                         _entity.IsDead = true;
@@ -70,3 +70,4 @@ namespace DungeonLife
         }
     }
 }
+

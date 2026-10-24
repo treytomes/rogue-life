@@ -22,7 +22,7 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 - `src/DungeonLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
   - On each timer tick, call `WorldSimulation.Tick()` when running or stepping.
   - `Tick()` advances `WorldTime` by one minute, advances `AnimationTime`/`TickCount`, then calls `Update` on every cell and entity via `Parallel.ForEach` (65,536 cells).
-  - Put world logic in `WorldCell.Update`, `Entity.Update`, or behaviors. Avoid unsynchronized shared mutable state; use `ThreadSafeRandom.Instance`, never `new Random()`.
+  - Put world logic in `WorldCell.Update`, `Entity.Update`, or behaviors. Avoid unsynchronized shared mutable state; use the run-owned `IWorldState.Random` source.
 - `src/DungeonLife.Core/Simulation/WorldSimulation.cs` implements `IWorldState`, the seam shared by cells, entities, behaviors, and generators. World data lives in `WorldCellCollection` and `EntityCollection`.
 - `WorldGenerator` exposes `BuildWorld` + `PlaceEntities`; `CavernGenerator` is active (chosen in `MainWindowViewModel`), `SpaciousCavernGenerator` is the alternate. Both live in `src/DungeonLife.Core/World Building/`.
 - Cells (`src/DungeonLife.Core/Cells/`) model terrain/environment: `FloorWorldCell` (algae/temperature/humidity), `WaterSourceCell`, `WallWorldCell`, and `BorderWorldCell` (day/night heat source).
@@ -43,3 +43,4 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 - `WorldCellCollection`'s indexer returns `null` for out-of-bounds coordinates instead of throwing; missing cells are treated as movement-blocking by `IsMovementBlocked`.
 - `EntityCollection` is a linear list and entity positions are floats; lookups are distance-based, not grid-indexed.
 - Match each file's existing spacing: most use spaces and `#region` blocks, while `CavernGenerator.cs` uses tabs.
+

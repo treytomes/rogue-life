@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,7 +20,7 @@ namespace DungeonLife
         public ReproductionBehavior(Entity entity)
             : base(entity)
         {
-            _desirability = (float)_random.NextDouble() * 0.5f + 0.5f;
+            _desirability = (float)Random.NextDouble() * 0.5f + 0.5f;
             _needToReproduce = 0.0f;
             _canBecomePregnant = _entity.Gender == Gender.Female; // and is an adult, and age < 75% ???
             _isPregnant = false;
@@ -76,3 +76,4 @@ namespace DungeonLife
         }
     }
 }
+

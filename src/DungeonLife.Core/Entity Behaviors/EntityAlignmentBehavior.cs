@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Numerics;
 
@@ -42,3 +42,4 @@ namespace DungeonLife
         }
     }
 }
+

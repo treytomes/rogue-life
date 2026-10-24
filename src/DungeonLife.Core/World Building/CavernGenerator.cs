@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -50,7 +50,7 @@ namespace DungeonLife
 						continue;
 					}
 
-					var oink = new OinkEntity(x, y);
+					var oink = new OinkEntity(x, y, world.Random);
 					world.Entities.Add(oink);
 					isPlaced = true;
 				}
@@ -78,7 +78,7 @@ namespace DungeonLife
 			{
 				for (var y = 0; y < world.Cells.Height; y++)
 				{
-					var percent = ThreadSafeRandom.Instance.Next(0, 100);
+					var percent = world.Random.Next(0, 100);
 					if (percent < WALL_FILL_PERCENTAGE)
 					{
 						CreateWall(world, x, y);
@@ -611,9 +611,9 @@ namespace DungeonLife
 				return region.Points.Any(x => Contains(x));
 			}
 
-			public Vector2 RandomPoint()
+			public Vector2 RandomPoint(IRandom random)
 			{
-				return Points.ElementAt(ThreadSafeRandom.Instance.Next(Points.Count() - 1));
+				return Points.ElementAt(random.Next(Points.Count() - 1));
 			}
 
 			#endregion
@@ -622,3 +622,5 @@ namespace DungeonLife
 		#endregion
 	}
 }
+
+

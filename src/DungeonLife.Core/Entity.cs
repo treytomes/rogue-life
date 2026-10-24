@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -8,7 +8,7 @@ namespace DungeonLife
     {
         #region Fields
 
-        private static IRandom _random = ThreadSafeRandom.Instance;
+
         private Vector2 _movingDirection;
         private RgbColor _foregroundColor;
 
@@ -16,13 +16,14 @@ namespace DungeonLife
 
         #region Constructors
 
-        public Entity(int x, int y, Gender? gender = null)
+        public Entity(int x, int y, IRandom random, Gender? gender = null)
         {
+            Random = random ?? throw new ArgumentNullException(nameof(random));
             Position = new Vector2(x, y);
-            Gender = gender ?? _random.NextEnum<Gender>();
+            Gender = gender ?? Random.NextEnum<Gender>();
             MaturityAge = TimeSpan.Zero;
             Age = TimeSpan.Zero;
-            MovingDirection = ThreadSafeRandom.Instance.NextDirection();
+            MovingDirection = Random.NextDirection();
         }
 
         #endregion
@@ -68,6 +69,7 @@ namespace DungeonLife
             }
         }
 
+        public IRandom Random { get; }
         public Vector2 Position { get; set; }
         public TimeSpan MaturityAge { get; protected set; }
         public TimeSpan Age { get; private set; }
@@ -239,3 +241,4 @@ namespace DungeonLife
         #endregion
     }
 }
+

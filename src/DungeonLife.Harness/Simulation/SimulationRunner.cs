@@ -12,7 +12,7 @@ internal sealed class SimulationRunner(
     public int Run()
     {
         logger.LogInformation(
-            "Starting headless simulation: generator {Generator}, configured seed {Seed} ({SeedSource}), ticks {Ticks}",
+            "Starting headless simulation: generator {Generator}, run seed {Seed} ({SeedSource}), ticks {Ticks}",
             settings.Generator,
             settings.Seed,
             settings.SeedSource,
@@ -81,3 +81,4 @@ internal sealed class SimulationRunner(
             livingEntityCount);
     }
 }
+

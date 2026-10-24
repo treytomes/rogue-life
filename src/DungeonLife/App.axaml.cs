@@ -31,7 +31,7 @@ namespace DungeonLife
                 _logger = _host.Services.GetRequiredService<ILogger<App>>();
                 var startupSettings = _host.Services.GetRequiredService<AppStartupSettings>();
                 _logger.LogInformation(
-                    "DungeonLife started with configured seed {Seed} ({SeedSource}), tick interval {TickIntervalMilliseconds} ms, configuration {ConfigurationFile}, and log level {LogLevel}",
+                    "DungeonLife started with run seed {Seed} ({SeedSource}), tick interval {TickIntervalMilliseconds} ms, configuration {ConfigurationFile}, and log level {LogLevel}",
                     startupSettings.Seed,
                     startupSettings.SeedSource,
                     startupSettings.TickIntervalMilliseconds,
@@ -54,3 +54,4 @@ namespace DungeonLife
         }
     }
 }
+

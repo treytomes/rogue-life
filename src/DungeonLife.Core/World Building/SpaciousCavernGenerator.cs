@@ -1,4 +1,4 @@
-﻿namespace DungeonLife
+namespace DungeonLife
 {
     public class SpaciousCavernGenerator : WorldGenerator
     {
@@ -56,7 +56,7 @@
                         continue;
                     }
 
-                    var oink = new OinkEntity(x, y);
+                    var oink = new OinkEntity(x, y, world.Random);
                     world.Entities.Add(oink);
                     isPlaced = true;
                 }
@@ -120,3 +120,4 @@
         }
     }
 }
+

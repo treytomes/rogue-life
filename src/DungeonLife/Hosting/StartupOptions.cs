@@ -13,6 +13,7 @@ namespace DungeonLife.Hosting
         Unspecified,
         CommandLine,
         Configuration,
+        Random,
     }
 
     /// <summary>
@@ -25,3 +26,4 @@ namespace DungeonLife.Hosting
         string LogLevel,
         string? ConfigurationFile);
 }
+

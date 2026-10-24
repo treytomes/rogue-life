@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 namespace DungeonLife
 {
@@ -16,7 +16,6 @@ namespace DungeonLife
 
         #region Fields
 
-        protected static IRandom _random = ThreadSafeRandom.Instance;
         private RgbColor _backgroundColor = RgbColor.Black;
 
         #endregion
@@ -89,3 +88,4 @@ namespace DungeonLife
         #endregion
     }
 }
+

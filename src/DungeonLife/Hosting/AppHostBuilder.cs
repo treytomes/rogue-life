@@ -9,6 +9,7 @@ using Serilog.Events;
 using System;
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography;
 
 #nullable enable
 
@@ -44,6 +45,7 @@ namespace DungeonLife.Hosting
             builder.Logging.AddSerilog(serilog, dispose: true);
 
             builder.Services.AddSingleton(startupSettings);
+            builder.Services.AddSingleton<IRandom>(_ => new SynchronizedRandom(new Pcg32Random(startupSettings.Seed!.Value)));
 
             builder.Services.AddSingleton<WorldGenerator, CavernGenerator>();
             builder.Services.AddSingleton<WorldSimulation>();
@@ -128,6 +130,12 @@ namespace DungeonLife.Hosting
                 seedSource = SeedSource.Configuration;
             }
 
+            if (!seed.HasValue)
+            {
+                seed = BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(sizeof(ulong)));
+                seedSource = SeedSource.Random;
+            }
+
             int tickInterval = 100;
             if (configuration["Runtime:TickIntervalMilliseconds"] is string configuredInterval)
             {
@@ -143,3 +151,4 @@ namespace DungeonLife.Hosting
         }
     }
 }
+

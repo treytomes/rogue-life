@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Numerics;
 
 namespace DungeonLife
@@ -11,19 +11,20 @@ namespace DungeonLife
     {
         private const int MAINTENANCE_BIAS = 1;
 
-        private float _changeDirectionChance = (float)_random.NextDouble();
+        private float _changeDirectionChance;
 
         public EntityWanderBehavior(Entity entity)
             : base(entity)
         {
-            _entity.MovingDirection = _random.NextDirection();
+            _changeDirectionChance = (float)Random.NextDouble();
+            _entity.MovingDirection = Random.NextDirection();
         }
 
         public override bool Update(IWorldState world)
         {
-            if (_random.NextDouble() > _changeDirectionChance)
+            if (Random.NextDouble() > _changeDirectionChance)
             {
-                var newDirection = _random.NextDirection();
+                var newDirection = Random.NextDirection();
                 _entity.MovingDirection = Vector2.Normalize((_entity.MovingDirection * MAINTENANCE_BIAS + new Vector2(newDirection.X, newDirection.Y)) / (MAINTENANCE_BIAS + 1));
                 return true;
             }
@@ -31,3 +32,5 @@ namespace DungeonLife
         }
     }
 }
+
+

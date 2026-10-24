@@ -2,7 +2,7 @@ namespace DungeonLife.Harness.Simulation;
 
 internal sealed record RunSummary(
     string Generator,
-    ulong? ConfiguredSeed,
+    ulong? RunSeed,
     string SeedSource,
     int RequestedTicks,
     long CompletedTicks,
@@ -14,3 +14,4 @@ internal sealed record RunSummary(
     double AverageHumidity,
     int EntityCount,
     int LivingEntityCount);
+

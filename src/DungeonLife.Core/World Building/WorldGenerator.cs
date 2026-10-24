@@ -1,11 +1,12 @@
-﻿namespace DungeonLife
+namespace DungeonLife
 {
     public abstract class WorldGenerator
     {
-        protected IRandom _random = ThreadSafeRandom.Instance;
+        protected IRandom _random;
 
         public void Generate(IWorldState world)
         {
+            _random = world.Random;
             BuildWorld(world);
             PlaceEntities(world);
         }
@@ -48,3 +49,4 @@
         }
     }
 }
+

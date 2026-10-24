@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
 using System.Globalization;
+using System.Security.Cryptography;
 
 namespace DungeonLife.Harness.Hosting;
 
@@ -36,6 +37,7 @@ internal static class HarnessHostBuilder
         builder.Logging.AddSerilog(serilog, dispose: true);
 
         builder.Services.AddSingleton(settings);
+        builder.Services.AddSingleton<IRandom>(_ => new SynchronizedRandom(new Pcg32Random(settings.Seed!.Value)));
         builder.Services.AddSingleton<WorldGenerator>(_ => settings.Generator switch
         {
             "cavern" => new CavernGenerator(),
@@ -67,6 +69,12 @@ internal static class HarnessHostBuilder
 
             seed = parsedSeed;
             seedSource = SeedSource.Configuration;
+        }
+
+        if (!seed.HasValue)
+        {
+            seed = BitConverter.ToUInt64(RandomNumberGenerator.GetBytes(sizeof(ulong)));
+            seedSource = SeedSource.Random;
         }
 
         string generator = (options.Generator ?? configuration["Harness:Generator"] ?? "cavern").Trim().ToLowerInvariant();
@@ -152,3 +160,4 @@ internal static class HarnessHostBuilder
             .CreateLogger();
     }
 }
+

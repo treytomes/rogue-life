@@ -16,8 +16,9 @@ namespace DungeonLife
 
         #region Constructors
 
-        public WorldSimulation(WorldGenerator generator)
+        public WorldSimulation(WorldGenerator generator, IRandom random)
         {
+            Random = random ?? throw new ArgumentNullException(nameof(random));
             Cells = new WorldCellCollection(WorldSettings.WorldWidth, WorldSettings.WorldHeight);
             Entities = new EntityCollection();
 
@@ -30,6 +31,7 @@ namespace DungeonLife
 
         public TimeSpan WorldTime { get; set; }
         public WorldCellCollection Cells { get; }
+        public IRandom Random { get; }
         public EntityCollection Entities { get; }
         public bool IsRunning { get; set; } = true;
         public bool IsStepping { get; set; }
@@ -74,3 +76,6 @@ namespace DungeonLife
         #endregion
     }
 }
+
+
+

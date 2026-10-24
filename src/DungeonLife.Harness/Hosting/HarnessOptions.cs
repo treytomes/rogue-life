@@ -12,6 +12,7 @@ internal enum SeedSource
     Unspecified,
     CommandLine,
     Configuration,
+    Random,
 }
 
 internal sealed record HarnessStartupSettings(
@@ -21,3 +22,4 @@ internal sealed record HarnessStartupSettings(
     string Generator,
     string LogLevel,
     string? ConfigurationFile);
+

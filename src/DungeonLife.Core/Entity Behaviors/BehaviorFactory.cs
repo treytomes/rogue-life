@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace DungeonLife
 {
@@ -40,3 +40,4 @@ namespace DungeonLife
         }
     }
 }
+

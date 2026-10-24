@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Numerics;
 
 namespace DungeonLife
@@ -22,7 +22,7 @@ namespace DungeonLife
             _drinkSpeed = drinkSpeed;
         }
 
-        private bool IsThirsty { get => _random.NextDouble() < _entity.Thirst; }
+        private bool IsThirsty { get => Random.NextDouble() < _entity.Thirst; }
 
         private bool Drink(WorldCell cell)
         {
@@ -89,7 +89,7 @@ namespace DungeonLife
             //        return false;
             //    }
 
-            //    var isThirsty = _random.NextDouble() < _entity.Thirst;
+            //    var isThirsty = Random.NextDouble() < _entity.Thirst;
             //    if (!isThirsty)
             //    {
             //        return false;
@@ -181,3 +181,4 @@ namespace DungeonLife
             //}
         }
     }
+

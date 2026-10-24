@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 
 namespace DungeonLife
@@ -9,8 +9,8 @@ namespace DungeonLife
         private const int GLYPH_BABY = 148;
         private const int GLYPH_ADULT = 153;
 
-        public OinkEntity(int x, int y)
-            : base(x, y)
+        public OinkEntity(int x, int y, IRandom random)
+            : base(x, y, random)
         {
             MaturityAge = TimeSpan.FromDays(3);
             BabyGlyph = GLYPH_BABY;
@@ -41,3 +41,4 @@ namespace DungeonLife
         }
     }
 }
+

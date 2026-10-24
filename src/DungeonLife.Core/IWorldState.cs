@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 
 namespace DungeonLife
@@ -7,8 +7,12 @@ namespace DungeonLife
     {
         TimeSpan WorldTime { get; set; }
         WorldCellCollection Cells { get; }
+        IRandom Random { get; }
         EntityCollection Entities { get; }
         bool IsMovementBlocked(float x, float y);
         bool IsMovementBlocked(Vector2 position);
     }
 }
+
+
+

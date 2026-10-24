@@ -71,7 +71,7 @@ explain why it changed.
   Generic Host, and can run without Avalonia or a desktop session. Share
   configuration and logging conventions with the UI while keeping host builders
   in their respective executable projects.
-- [ ] Replace the process-wide `ThreadSafeRandom` usage with an injected,
+- [x] Replace the process-wide `ThreadSafeRandom` usage with an injected,
   seedable random source owned by a simulation run. Record the seed with results.  Review and copy the `~\projects\learning\src\WormForaging.Core\Rng\Pcg32Random.cs` class along with it's interface.
 - [ ] Make random streams independent of thread scheduling. Prefer stable streams
   keyed by run seed plus cell/entity identity and tick, or use a deterministic
@@ -91,6 +91,7 @@ explain why it changed.
 
 ## Phase 2: Validate existing rules
 
+- [ ] Configure every `.csproj` to require documentation, and to treat warnings as errors, then build and fix the errors you find.
 - [ ] Fix neighborhood averages at world edges. `AverageOver` currently divides
   by the full square area even when `IterateOver` clips the sample to the map.
 - [ ] Implement and validate the specified cell-neighborhood geometry and edge
@@ -165,8 +166,8 @@ explain why it changed.
 
 - [ ] Cell and entity updates currently run in parallel while reading and
   mutating shared state, so outcomes can depend on scheduling.
-- [ ] `ThreadSafeRandom` is safe for concurrent access but is not seeded or
-  replayable, and its thread-local streams associate draws with scheduler threads.
+- [ ] The run-owned RNG is safe for concurrent access, but draw ordering can
+  still associate values with scheduler-dependent cell/entity updates.
 - [ ] Entity reproduction is unfinished and not enabled; current populations
   cannot replace deaths.
 - [ ] The cohesion rule's implementation contradicts its intended name.
@@ -174,3 +175,6 @@ explain why it changed.
   cells.
 - [ ] UI cadence currently advances world time by one minute per timer tick;
   experiments need an explicit, independently controlled tick duration.
+
+
+

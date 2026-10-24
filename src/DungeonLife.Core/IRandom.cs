@@ -1,73 +1,78 @@
-﻿using System;
-using System.Numerics;
+namespace DungeonLife;
 
-namespace DungeonLife
+/// <summary>
+/// A deterministic, seedable source of pseudo-random numbers.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Determinism is a hard requirement of this project: a run must be reproducible from its seed
+/// so that experiments on the learning rule can be compared across conditions rather than across
+/// lucky dice. Every stochastic path in the simulation — network initialization, action
+/// sampling, food and heat-lamp placement, exploration noise — draws from an <see cref="IRandom"/>
+/// rather than from an ambient <see cref="Random"/>. Nothing in <c>WormForaging.Core</c>
+/// is allowed to reach for the system clock or a global RNG.
+/// </para>
+/// <para>
+/// Routing all randomness through this interface also makes the simulation testable: a test can
+/// inject a fixed-seed generator for repeatable assertions, or a scripted fake that returns a
+/// chosen sequence to drive the agent down a specific path.
+/// </para>
+/// </remarks>
+public interface IRandom
 {
     /// <summary>
-    /// Represents a pseudo-random number generator, which is an algorithm that produces a sequence of numbers that meet certain statistical requirements for randomness.
+    /// Reset the generator to its initial state.
     /// </summary>
-    public interface IRandom
-    {
-        /// <summary>
-        /// Returns a non-negative random integer.
-        /// </summary>
-        /// <returns>
-        /// A 32-bit signed integer that is greater than or equal to 0 and less than System.Int32.MaxValue.
-        /// </returns>
-        int Next();
+    void Reset();
 
-        /// <summary>
-        /// Returns a non-negative random integer that is less than the specified maximum.
-        /// </summary>
-        /// <param name="maxValue">
-        /// The exclusive upper bound of the random number to be generated. maxValue must be greater than or equal to 0.
-        /// </param>
-        /// <returns>
-        /// A 32-bit signed integer that is greater than or equal to 0, and less than maxValue; that is, the range of return values ordinarily includes 0 but not maxValue. However, if maxValue equals 0, maxValue is returned.
-        /// </returns>
-        int Next(int maxValue);
+    /// <summary>
+    /// Reset the generator to a new seed and optional sequence.
+    /// </summary>
+    /// <param name="seed">
+    /// The initial state seed. Any value is valid; a given seed fully determines the stream
+    /// (together with <paramref name="sequence"/>).
+    /// </param>
+    /// <param name="sequence">
+    /// Selects which of the 2^63 distinct streams to draw from. Two instances that share a
+    /// <paramref name="seed"/> but differ here produce independent sequences, which is useful for
+    /// giving separate simulation components their own uncorrelated randomness.
+    /// </param>
+    void Reseed(ulong seed, ulong sequence = 0);
 
-        /// <summary>
-        /// Returns a random integer that is within a specified range.
-        /// </summary>
-        /// <param name="minValue">
-        /// The inclusive lower bound of the random number returned.
-        /// </param>
-        /// <param name="maxValue">
-        /// The exclusive upper bound of the random number returned. maxValue must be greater than or equal to minValue.</param>
-        /// <returns>
-        /// A 32-bit signed integer greater than or equal to minValue and less than maxValue; that is, the range of return values includes minValue but not maxValue. If minValue equals maxValue, minValue is returned.
-        /// </returns>
-        int Next(int minValue, int maxValue);
+    /// <summary>
+    /// Returns the next uniformly distributed 32-bit unsigned value, covering the full range
+    /// <c>[0, 2^32)</c>. This is the generator's primitive output; the other members are derived
+    /// from it.
+    /// </summary>
+    /// <returns>A pseudo-random <see cref="uint"/>.</returns>
+    uint NextUInt();
 
-        /// <summary>
-        /// Fills the elements of a specified array of bytes with random numbers.
-        /// </summary>
-        /// <param name="buffer">The array to be filled with random numbers.</param>
-        void NextBytes(byte[] buffer);
+    /// <summary>
+    /// Returns a uniformly distributed double in the half-open interval <c>[0, 1)</c>.
+    /// </summary>
+    /// <returns>A pseudo-random <see cref="double"/> that is at least 0 and strictly less than 1.</returns>
+    double NextDouble();
 
-        /// <summary>
-        /// Fills the elements of a specified span of bytes with random numbers.
-        /// </summary>
-        /// <param name="buffer">
-        /// The array to be filled with random numbers.
-        /// </param>
-        void NextBytes(Span<byte> buffer);
+    /// <summary>
+    /// Returns a uniformly distributed integer in the half-open interval
+    /// <c>[0, <paramref name="maxExclusive"/>)</c>, without modulo bias.
+    /// </summary>
+    /// <param name="maxExclusive">The exclusive upper bound. Must be greater than zero.</param>
+    /// <returns>A pseudo-random <see cref="int"/> in <c>[0, <paramref name="maxExclusive"/>)</c>.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="maxExclusive"/> is less than or equal to zero.
+    /// </exception>
+    int NextInt(int maxExclusive);
 
-        /// <summary>
-        /// Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
-        /// </summary>
-        /// <returns>
-        /// A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.
-        /// </returns>
-        double NextDouble();
-
-        /// <summary>
-        /// Returns a unit vector pointing in a random direction.
-        /// </summary>
-        /// <returns>A unit vector where both components are a number between -1 and 1.</returns>
-        Vector2 NextDirection();
-
-        TEnum NextEnum<TEnum>() where TEnum : struct, Enum;
-    }
+    /// <summary>
+    /// Returns a sample from the standard normal distribution (mean 0, standard deviation 1).
+    /// </summary>
+    /// <remarks>
+    /// Mirrors the <c>randn()</c> helper from the original browser prototype, which the weight and
+    /// wiring initializers scale to the variances they need.
+    /// </remarks>
+    /// <returns>A pseudo-random, normally distributed <see cref="double"/>.</returns>
+    double NextGaussian();
 }
+
+

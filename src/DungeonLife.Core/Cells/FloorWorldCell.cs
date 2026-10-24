@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 
 namespace DungeonLife
@@ -178,9 +178,9 @@ namespace DungeonLife
 
             AlgaeLevel = ConwayFrameRule(AlgaeLevel, regionValue);
 
-            if (_random.NextDouble() > (1.0f - SPONTANEOUS_LIFE_CHANCE * Humidity)) // Greater chance of spawning new cells in humid weather.
+            if (state.Random.NextDouble() > (1.0f - SPONTANEOUS_LIFE_CHANCE * Humidity)) // Greater chance of spawning new cells in humid weather.
             {
-                AlgaeLevel = (float)(_random.NextDouble() * 0.5 + 0.5);
+                AlgaeLevel = (float)(state.Random.NextDouble() * 0.5 + 0.5);
             }
 
             // Humidity should prevent temperature from spreading as quickly.
@@ -212,3 +212,4 @@ namespace DungeonLife
         }
     }
 }
+
