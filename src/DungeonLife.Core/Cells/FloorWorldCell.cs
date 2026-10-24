@@ -63,13 +63,13 @@ namespace DungeonLife
 
         public float AlgaeLevel { get; set; }
 
-        private float GetRegionAlgae(WorldCellCollection cells, Vector2 position, int radius)
+        private float GetRegionAlgae(WorldCellStateSnapshot snapshot, Vector2 position, int radius)
         {
-            return cells.SumOver(position, radius, c => (c as FloorWorldCell)?.AlgaeLevel ?? 0);
+            return snapshot.GetRegionAlgae(position, radius);
         }
 
         /// <returns>The amount of life to set to the cell's algae level.</returns>
-        private float ConwayFrameRule(float cellValue, float regionValue)
+        private float ConwayFrameRule(float cellValue, float regionValue, float humidity)
         {
             // This gets small as the distance from ideal increases.
             var tempDistance = 2 * (Temperature - WorldSettings.IdealTemperature);
@@ -124,20 +124,20 @@ namespace DungeonLife
             // The 0.9f factor is there to try and reduce the amount of affect temperature has on cell activity.
             cellDelta *= (float)(1.0f - 0.8f * Math.Abs(Math.Sin(tempDistance)));
 
-            if (Humidity < 0.01f)
+            if (humidity < 0.01f)
             {
                 // TODO: Do dry, hot algae still need to burn here?
                 cellDelta = 0.0f;
             }
-            else if (Humidity < 0.5f)
+            else if (humidity < 0.5f)
             {
                 // Dry weather slows growth.
-                cellDelta *= (1 - Humidity);
+                cellDelta *= (1 - humidity);
             }
             else
             {
                 // Wet weather encourages growth.
-                cellDelta *= (1 + (Humidity - 0.5f));
+                cellDelta *= (1 + (humidity - 0.5f));
             }
 
             newValue += cellDelta;
@@ -153,7 +153,7 @@ namespace DungeonLife
                 }
                 else
                 {
-                    newValue -= AGE_RATE * Humidity;
+                    newValue -= AGE_RATE * humidity;
                 }
             }
 
@@ -170,46 +170,31 @@ namespace DungeonLife
             return newValue;
         }
 
-        public override void Update(IWorldState state)
+        internal override WorldCellNextState CalculateNextState(WorldCellStateSnapshot snapshot, TimeSpan worldTime)
         {
-            base.Update(state);
+            float nextHumidity = CalculateNextHumidity(snapshot);
+            float regionAlgae = GetRegionAlgae(snapshot, Position, ALGAE_SEARCH_RADIUS);
+            float nextAlgae = ConwayFrameRule(AlgaeLevel, regionAlgae, nextHumidity);
 
-            var regionValue = GetRegionAlgae(state.Cells, Position, ALGAE_SEARCH_RADIUS);
-
-            AlgaeLevel = ConwayFrameRule(AlgaeLevel, regionValue);
-
-            if (state.Random.NextDouble() > (1.0f - SPONTANEOUS_LIFE_CHANCE * Humidity)) // Greater chance of spawning new cells in humid weather.
+            if (Random.NextDouble() > (1.0f - SPONTANEOUS_LIFE_CHANCE * nextHumidity))
             {
-                AlgaeLevel = (float)(state.Random.NextDouble() * 0.5 + 0.5);
+                nextAlgae = (float)(Random.NextDouble() * 0.5 + 0.5);
             }
 
-            // Humidity should prevent temperature from spreading as quickly.
-            var avgTemp = state.Cells.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
-            var deltaTemp = avgTemp - Temperature;
-            Temperature += (1.0f - Humidity) * deltaTemp;
-
-            // Floors act as a heat sink.
-            if (Temperature < WorldSettings.IdealTemperature)
+            float averageTemperature = snapshot.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
+            float nextTemperature = Temperature + (1.0f - nextHumidity) * (averageTemperature - Temperature);
+            if (nextTemperature < WorldSettings.IdealTemperature)
             {
-                Temperature += HEAT_SINK_VALUE;
+                nextTemperature += HEAT_SINK_VALUE;
             }
-            else if (Temperature > WorldSettings.IdealTemperature)
+            else if (nextTemperature > WorldSettings.IdealTemperature)
             {
-                Temperature -= HEAT_SINK_VALUE;
+                nextTemperature -= HEAT_SINK_VALUE;
             }
 
-            /*
-            // Floors act as a temperature stabilizer. 
-            if (Temperature > IDEAL_TEMPERATURE)
-            {
-                Temperature -= HEAT_SINK_VALUE;
-            }
-            else if (Temperature < IDEAL_TEMPERATURE)
-            {
-                Temperature += HEAT_SINK_VALUE;
-            }
-            */
+            return new WorldCellNextState(nextTemperature, nextHumidity, nextAlgae);
         }
     }
 }
+
 

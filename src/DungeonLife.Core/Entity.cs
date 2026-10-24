@@ -69,7 +69,9 @@ namespace DungeonLife
             }
         }
 
-        public IRandom Random { get; }
+        /// <summary>Stable simulation identity assigned when the entity enters its collection.</summary>
+        public long Id { get; internal set; }
+        public IRandom Random { get; internal set; }
         public Vector2 Position { get; set; }
         public TimeSpan MaturityAge { get; protected set; }
         public TimeSpan Age { get; private set; }
@@ -188,57 +190,91 @@ namespace DungeonLife
 
         #region Methods
 
-        public virtual void Update(IWorldState world, TimeSpan worldDelta)
+        internal EntityIntent Decide(EntityDecisionSnapshot snapshot)
         {
-            foreach (var state in Behaviors)
+            EntityStateSnapshot self = snapshot.GetEntity(Id);
+            if (self.IsDead) return EntityIntent.None(this);
+
+            var context = new EntityDecisionContext(self, snapshot);
+            foreach (EntityBehavior behavior in Behaviors)
             {
-                if (state.Update(world))
+                if (behavior.TryDecide(context, out EntityIntent intent))
                 {
-                    // Stop at the first behavior that actually does something.
-                    ActiveBehavior = state;
-                    break;
+                    return intent with { SelectedBehavior = behavior };
                 }
             }
 
-            if (!IsDead)
+            return EntityIntent.None(this);
+        }
+
+        internal void Resolve(EntityIntent intent, IWorldState world, TimeSpan worldDelta)
+        {
+            if (IsDead) return;
+
+            if (intent.SelectedBehavior != null)
             {
-                Age += worldDelta;
-                Hunger += Metabolism * HungerMultiplier;
-                if (Hunger > 1)
-                {
-                    Hunger = 1;
-                }
-                else if (Hunger < 0)
-                {
-                    Hunger = 0;
-                }
-                Thirst += Metabolism * ThirstMultiplier;
-                if (Thirst > 1)
-                {
-                    Thirst = 1;
-                }
-                else if (Thirst < 0)
-                {
-                    Thirst = 0;
-                }
+                ActiveBehavior = intent.SelectedBehavior;
+            }
 
-                var cell = world.Cells[(int)Position.X, (int)Position.Y];
-                var newPosition = Position + MovingDirection * cell.MovementSpeedMultiplier;
-                if (world.IsMovementBlocked(newPosition))
-                {
-                    MovingDirection = -MovingDirection;
-                }
-                else
-                {
-                    Position = newPosition;
+            if (intent.Dies)
+            {
+                IsDead = true;
+                return;
+            }
 
-                    // TODO: If the cell is wet, increase the wetness of this entity.
-                    // TODO: Water should slow movement speed.
-                }
+            if (intent.MovingDirection.HasValue)
+            {
+                MovingDirection = intent.MovingDirection.Value;
+            }
+
+            ResolveAction(intent, world);
+
+            Age += worldDelta;
+            Hunger = Math.Clamp(Hunger + Metabolism * HungerMultiplier, 0.0f, 1.0f);
+            Thirst = Math.Clamp(Thirst + Metabolism * ThirstMultiplier, 0.0f, 1.0f);
+
+            WorldCell currentCell = world.Cells[(int)Position.X, (int)Position.Y];
+            float movementSpeed = currentCell?.MovementSpeedMultiplier ?? 0;
+            Vector2 newPosition = Position + MovingDirection * movementSpeed;
+            if (world.IsMovementBlocked(newPosition))
+            {
+                MovingDirection = -MovingDirection;
+            }
+            else
+            {
+                Position = newPosition;
             }
         }
 
+        private void ResolveAction(EntityIntent intent, IWorldState world)
+        {
+            WorldCell target = world.Cells[(int)intent.ActionTarget.X, (int)intent.ActionTarget.Y];
+            switch (intent.Action)
+            {
+                case EntityAction.Eat when target is FloorWorldCell floor && floor.AlgaeLevel > 0:
+                    if (floor.AlgaeLevel > intent.ActionAmount)
+                    {
+                        floor.AlgaeLevel -= intent.ActionAmount / intent.ActionFactor;
+                        Hunger -= intent.ActionAmount * intent.ActionFactor;
+                    }
+                    else
+                    {
+                        Hunger -= floor.AlgaeLevel * intent.ActionFactor;
+                        floor.AlgaeLevel = 0;
+                    }
+                    Hunger = Math.Max(0, Hunger);
+                    break;
+                case EntityAction.Drink when target is WaterSourceCell:
+                    Thirst = Math.Max(0, Thirst - intent.ActionAmount);
+                    break;
+            }
+        }
         #endregion
     }
 }
+
+
+
+
+
 

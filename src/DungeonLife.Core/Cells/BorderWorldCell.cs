@@ -1,24 +1,22 @@
-﻿using System;
+using System;
 
 namespace DungeonLife
 {
-    /// <summary>
-    /// A wall that emanates heat throughout the day.
-    /// </summary>
+    /// <summary>A wall that emanates heat throughout the day.</summary>
     public class BorderWorldCell : WallWorldCell
     {
-        public BorderWorldCell(int x, int y)
-            : base(x, y)
+        private const double MINUTES_PER_DAY = 24 * 60;
+
+        public BorderWorldCell(int x, int y) : base(x, y)
         {
         }
 
-        public override void Update(IWorldState state)
+        internal override WorldCellNextState CalculateNextState(WorldCellStateSnapshot snapshot, TimeSpan worldTime)
         {
-            //// Temperature will range from 10C to 35C over the course of the day.
-            //Temperature = -12.5f * (float)Math.Cos(state.WorldTime.Hours / 3.8) + 12.5f + 10;
-
-            // Temperature will range from 0C to 50C over the course of the day.
-            Temperature = WorldSettings.TemperatureRange / 2.0f * (-1 * (float)Math.Cos(state.WorldTime.Hours / 3.8) + 1);
+            double minuteOfDay = worldTime.TotalMinutes % MINUTES_PER_DAY;
+            double phase = 2.0 * Math.PI * minuteOfDay / MINUTES_PER_DAY;
+            float temperature = WorldSettings.TemperatureRange / 2.0f * (1.0f - (float)Math.Cos(phase));
+            return new WorldCellNextState(temperature, 0, 0);
         }
     }
 }

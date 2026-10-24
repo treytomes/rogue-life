@@ -9,35 +9,31 @@ namespace DungeonLife
     {
         private const int MAINTENANCE_BIAS = 1;
 
-        public EntityAlignmentBehavior(Entity entity)
-            : base(entity)
-        {
-        }
+        public EntityAlignmentBehavior(Entity entity) : base(entity) { }
 
-        public override bool Update(IWorldState world)
+        internal override bool TryDecide(EntityDecisionContext context, out EntityIntent intent)
         {
-            var entities = world.Entities.InArea(_entity.Position, _entity.RangeOfSight, _entity.GetType());
-            var count = entities.Count();
-            if (count <= 1)
+            EntityStateSnapshot[] entities = context.World
+                .InArea(context.Self.Position, context.Self.RangeOfSight, context.Self.EntityType)
+                .ToArray();
+            if (entities.Length <= 1)
             {
-                // Can't flock with yourself.
+                intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            var d = Vector2.Zero;
-            foreach (var entity in entities)
+            Vector2 averageDirection = Vector2.Zero;
+            foreach (EntityStateSnapshot entity in entities) averageDirection += entity.MovingDirection;
+            averageDirection /= entities.Length;
+            if (averageDirection == Vector2.Zero)
             {
-                d += entity.MovingDirection;
-            }
-            d /= count;
-
-            if (d == Vector2.Zero)
-            {
+                intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            d = Vector2.Normalize(d);
-            _entity.MovingDirection = Vector2.Normalize((_entity.MovingDirection * MAINTENANCE_BIAS + d) / (MAINTENANCE_BIAS + 1));
+            averageDirection = Vector2.Normalize(averageDirection);
+            Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + averageDirection) / (MAINTENANCE_BIAS + 1));
+            intent = new EntityIntent(_entity, MovingDirection: direction);
             return true;
         }
     }

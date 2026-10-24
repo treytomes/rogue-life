@@ -8,53 +8,44 @@ namespace DungeonLife
     class EntitySeparationBehavior : EntityBehavior
     {
         private const int MAINTENANCE_BIAS = 1;
+        private readonly float _separationAmountSquared;
 
-        private float _separationAmount;
-        private float _separationAmountSquared;
-
-        public EntitySeparationBehavior(Entity entity, float separationAmount = 2)
-            : base(entity)
+        public EntitySeparationBehavior(Entity entity, float separationAmount = 2) : base(entity)
         {
-            _separationAmount = separationAmount;
-            _separationAmountSquared = _separationAmount * _separationAmount;
+            _separationAmountSquared = separationAmount * separationAmount;
         }
 
-        public override bool Update(IWorldState world)
+        internal override bool TryDecide(EntityDecisionContext context, out EntityIntent intent)
         {
-            var entities = world.Entities.InArea(_entity.Position, _entity.RangeOfSight, _entity.GetType());
-            var count = entities.Count();
-            if (count <= 1)
+            var entities = context.World.InArea(context.Self.Position, context.Self.RangeOfSight, context.Self.EntityType).ToArray();
+            if (entities.Length <= 1)
             {
+                intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            foreach (var entity in entities)
+            foreach (EntityStateSnapshot entity in entities)
             {
-                if (entity == _entity)
+                if (entity.Id == context.Self.Id) continue;
+
+                Vector2 delta = context.Self.Position - entity.Position;
+                float distanceSquared = delta.LengthSquared();
+                if (distanceSquared <= _separationAmountSquared)
                 {
-                    continue;
-                }
-
-                var delta = _entity.Position - entity.Position;
-                var distance = delta.LengthSquared();
-                if (distance <= _separationAmountSquared)
-                {
-                    // It's too close!
-
-                    // The normalized distance is the new movement direction.
-                    distance = delta.Length();
-                    delta /= distance;
-
-                    if (delta == Vector2.Zero)
+                    if (distanceSquared == 0)
                     {
+                        intent = EntityIntent.None(_entity);
                         return false;
                     }
 
                     delta = Vector2.Normalize(delta);
-                    _entity.MovingDirection = Vector2.Normalize((_entity.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1));
+                    Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1));
+                    intent = new EntityIntent(_entity, MovingDirection: direction);
                     return true;
                 }
             }
+
+            intent = EntityIntent.None(_entity);
             return false;
         }
     }

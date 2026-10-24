@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -8,6 +8,7 @@ namespace DungeonLife
     public class EntityCollection : IEnumerable<Entity>
     {
         private readonly List<Entity> _entities;
+        private long _nextId = 1;
 
         public EntityCollection()
         {
@@ -24,12 +25,25 @@ namespace DungeonLife
 
         public void Add(Entity entity)
         {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
             if (!_entities.Contains(entity))
             {
+                entity.Id = _nextId++;
                 _entities.Add(entity);
             }
         }
 
+        /// <summary>Enumerates entities in stable-ID order rotated by the zero-based tick.</summary>
+        public IEnumerable<Entity> InPriorityOrder(long zeroBasedTick)
+        {
+            if (_entities.Count == 0) yield break;
+
+            int start = (int)((ulong)zeroBasedTick % (ulong)_entities.Count);
+            for (int offset = 0; offset < _entities.Count; offset++)
+            {
+                yield return _entities[(start + offset) % _entities.Count];
+            }
+        }
         public Entity At(float x, float y)
         {
             return At(new Vector2(x, y));
@@ -81,3 +95,5 @@ namespace DungeonLife
         }
     }
 }
+
+

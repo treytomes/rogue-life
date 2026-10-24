@@ -3,34 +3,31 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    /// <summary>
-    /// The entity will wander aimlessly.
-    /// </summary>
     [DisplayName("Wandering")]
     class EntityWanderBehavior : EntityBehavior
     {
         private const int MAINTENANCE_BIAS = 1;
+        private readonly float _changeDirectionChance;
 
-        private float _changeDirectionChance;
-
-        public EntityWanderBehavior(Entity entity)
-            : base(entity)
+        public EntityWanderBehavior(Entity entity) : base(entity)
         {
             _changeDirectionChance = (float)Random.NextDouble();
             _entity.MovingDirection = Random.NextDirection();
         }
 
-        public override bool Update(IWorldState world)
+        internal override bool TryDecide(EntityDecisionContext context, out EntityIntent intent)
         {
             if (Random.NextDouble() > _changeDirectionChance)
             {
-                var newDirection = Random.NextDirection();
-                _entity.MovingDirection = Vector2.Normalize((_entity.MovingDirection * MAINTENANCE_BIAS + new Vector2(newDirection.X, newDirection.Y)) / (MAINTENANCE_BIAS + 1));
+                Vector2 newDirection = Random.NextDirection();
+                Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + newDirection) / (MAINTENANCE_BIAS + 1));
+                intent = new EntityIntent(_entity, MovingDirection: direction);
                 return true;
             }
+
+            intent = EntityIntent.None(_entity);
             return false;
         }
     }
 }
-
 

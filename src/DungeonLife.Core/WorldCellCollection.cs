@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -101,6 +101,27 @@ namespace DungeonLife
             return (this[position]?.BlocksMovement).GetValueOrDefault(true);
         }
 
+        internal WorldCellStateSnapshot CaptureSnapshot() => new(this);
+
+        internal void Commit(WorldCellNextState[,] nextStates)
+        {
+            for (int x = 0; x < Width; x++)
+            {
+                for (int y = 0; y < Height; y++)
+                {
+                    WorldCell cell = _cells[x, y];
+                    if (cell == null) continue;
+
+                    WorldCellNextState nextState = nextStates[x, y];
+                    cell.Temperature = nextState.Temperature;
+                    cell.Humidity = nextState.Humidity;
+                    if (cell is FloorWorldCell floor)
+                    {
+                        floor.AlgaeLevel = nextState.AlgaeLevel;
+                    }
+                }
+            }
+        }
         public IEnumerator<WorldCell> GetEnumerator()
         {
             for (var x = 0; x < Width; x++)
@@ -118,3 +139,5 @@ namespace DungeonLife
         }
     }
 }
+
+

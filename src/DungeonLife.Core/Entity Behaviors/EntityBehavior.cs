@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -6,85 +7,57 @@ using System.Reflection;
 
 namespace DungeonLife
 {
-    public class SearchResult
-    {
-        public Vector2 Position;
-        public float Distance;
-        public float Value;
-    }
-
-    public class SearchResult<TCell> : SearchResult
-        where TCell : WorldCell
-    {
-        public TCell Cell;
-    }
-
     public abstract class EntityBehavior
     {
         protected readonly Entity _entity;
         protected IRandom Random => _entity.Random;
 
-        public EntityBehavior(Entity entity)
+        protected EntityBehavior(Entity entity)
         {
             _entity = entity;
         }
 
-        /// <returns>Did the behavior do anything?</returns>
-        public abstract bool Update(IWorldState world);
+        /// <summary>Plans an action from the immutable world snapshot without changing world state.</summary>
+        internal abstract bool TryDecide(EntityDecisionContext context, out EntityIntent intent);
 
         public override string ToString()
         {
-            return GetType().GetCustomAttribute<DisplayNameAttribute>().DisplayName;
+            return GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? GetType().Name;
         }
 
-        protected SearchResult<TCell> FindClosest<TCell>(IWorldState world, Vector2 position, float radius, Func<TCell, float> propertyToMaximize = null)
+        private protected WorldCellStateValue? FindClosest<TCell>(
+            EntityDecisionContext context,
+            Vector2 position,
+            float radius,
+            Func<WorldCellStateValue, float>? propertyToMaximize = null)
             where TCell : WorldCell
         {
-            var cells = world.Cells.IterateOver(position, radius).OfType<TCell>();
-            if (!cells.Any())
-            {
-                return null;
-            }
+            WorldCellStateValue[] cells = context.World.Cells
+                .IterateOver(position, radius)
+                .Where(cell => typeof(TCell).IsAssignableFrom(cell.CellType))
+                .ToArray();
+            if (cells.Length == 0) return null;
 
-            if (propertyToMaximize == null)
-            {
-                propertyToMaximize = cell => 1.0f;
-            }
+            propertyToMaximize ??= _ => 1.0f;
+            int firstIndex = Array.FindIndex(cells, cell => propertyToMaximize(cell) != 0);
+            if (firstIndex < 0) return null;
 
-            var first = cells.FirstOrDefault(x => propertyToMaximize(x) != 0);
-            if (first == null)
-            {
-                return null;
-            }
+            WorldCellStateValue result = cells[firstIndex];
+            float resultDistance = Vector2.DistanceSquared(context.Self.Position, result.Position);
+            float resultValue = propertyToMaximize(result);
 
-            var result = new SearchResult<TCell>()
+            for (int index = firstIndex + 1; index < cells.Length; index++)
             {
-                Cell = first,
-                Position = first.Position,
-                Distance = (_entity.Position - first.Position).LengthSquared(),
-                Value = propertyToMaximize(first)
-            };
-
-            foreach (var cell in cells.Skip(1))
-            {
-                var cellValue = propertyToMaximize(cell);
-
-                if (cellValue > result.Value)
+                WorldCellStateValue cell = cells[index];
+                float cellValue = propertyToMaximize(cell);
+                if (cellValue > resultValue)
                 {
-                    // Grab either the closest floor cell or the one with the highest food level.
-                    var dist = (_entity.Position - cell.Position).LengthSquared();
-
-                    // TODO: Total value is (radius - dist) * cellValue).  Order by this.
-
-                    if ((dist < result.Distance) || ((dist == result.Distance) && (cellValue > result.Value)))
+                    float distance = Vector2.DistanceSquared(context.Self.Position, cell.Position);
+                    if ((distance < resultDistance) || ((distance == resultDistance) && (cellValue > resultValue)))
                     {
-                        result = new SearchResult<TCell>()
-                        {
-                            Cell = cell,
-                            Position = cell.Position,
-                            Distance = dist,
-                            Value = cellValue
-                        };
+                        result = cell;
+                        resultDistance = distance;
+                        resultValue = cellValue;
                     }
                 }
             }
@@ -93,5 +66,6 @@ namespace DungeonLife
         }
     }
 }
+
 
 

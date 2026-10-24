@@ -1,13 +1,10 @@
-﻿namespace DungeonLife
+using System;
+namespace DungeonLife
 {
-
-    /// <summary>
-    /// A wall cannot be passed.
-    /// </summary>
+    /// <summary>A wall cannot be passed.</summary>
     public class WallWorldCell : WorldCell
     {
-        public WallWorldCell(int x, int y)
-            : base(x, y)
+        public WallWorldCell(int x, int y) : base(x, y)
         {
             ForegroundColor = RgbColor.AnsiWhite;
             BackgroundColor = RgbColor.AnsiBlackBright;
@@ -15,24 +12,21 @@
             MovementSpeedMultiplier = 0.0f;
         }
 
-        public override void Update(IWorldState state)
+        internal override WorldCellNextState CalculateNextState(WorldCellStateSnapshot snapshot, TimeSpan worldTime)
         {
-            base.Update(state);
-
-            var newTemp = state.Cells.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
-
-            // Walls act as a temperature stabilizer; much more so than water.
-            Temperature = (5 * Temperature + newTemp) / 6.0f;
-            if (Temperature > WorldSettings.IdealTemperature)
+            float averageTemperature = snapshot.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
+            float nextTemperature = (5 * Temperature + averageTemperature) / 6.0f;
+            if (nextTemperature > WorldSettings.IdealTemperature)
             {
-                Temperature -= 0.001f;
+                nextTemperature -= 0.001f;
             }
-            else if (Temperature < WorldSettings.IdealTemperature)
+            else if (nextTemperature < WorldSettings.IdealTemperature)
             {
-                Temperature += 0.001f;
+                nextTemperature += 0.001f;
             }
 
-            Humidity = 0;
+            return new WorldCellNextState(nextTemperature, 0, 0);
         }
     }
 }
+

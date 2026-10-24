@@ -13,5 +13,9 @@ internal sealed record RunSummary(
     double AverageTemperature,
     double AverageHumidity,
     int EntityCount,
-    int LivingEntityCount);
+    int LivingEntityCount,
+    long[] EntityIds,
+    long[] FirstTickPriorityIds,
+    long[] SecondTickPriorityIds);
+
 

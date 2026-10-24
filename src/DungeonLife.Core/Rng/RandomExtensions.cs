@@ -26,17 +26,3 @@ public static class RandomExtensions
     }
 }
 
-/// <summary>Serializes access to a run-owned generator while simulation updates execute in parallel.</summary>
-public sealed class SynchronizedRandom : IRandom
-{
-    private readonly object _gate = new();
-    private readonly IRandom _inner;
-
-    public SynchronizedRandom(IRandom inner) => _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-    public void Reset() { lock (_gate) _inner.Reset(); }
-    public void Reseed(ulong seed, ulong sequence = 0) { lock (_gate) _inner.Reseed(seed, sequence); }
-    public uint NextUInt() { lock (_gate) return _inner.NextUInt(); }
-    public double NextDouble() { lock (_gate) return _inner.NextDouble(); }
-    public int NextInt(int maxExclusive) { lock (_gate) return _inner.NextInt(maxExclusive); }
-    public double NextGaussian() { lock (_gate) return _inner.NextGaussian(); }
-}

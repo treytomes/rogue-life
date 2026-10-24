@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 
 namespace DungeonLife
@@ -32,18 +33,16 @@ namespace DungeonLife
         #region Properties
 
         public Vector2 Position { get; }
+        public IRandom Random { get; internal set; } = null!;
         public float MovementSpeedMultiplier { get; set; } = 1.0f;
 
         public bool BlocksMovement
         {
-            get
-            {
-                return MovementSpeedMultiplier == 0;
-            }
+            get => MovementSpeedMultiplier == 0;
         }
 
         public float Temperature { get; set; } = WorldSettings.IdealTemperature;
-        public float Humidity { get; set; } = 0;
+        public float Humidity { get; set; }
 
         public virtual RgbColor BackgroundColor
         {
@@ -72,20 +71,19 @@ namespace DungeonLife
 
         #region Methods
 
-        public virtual void Update(IWorldState state)
+        internal virtual WorldCellNextState CalculateNextState(WorldCellStateSnapshot snapshot, TimeSpan worldTime)
         {
-            Humidity = state.Cells.GetRegionHumidity(Position, HUMIDITY_SEARCH_RADIUS) * 0.999f;
-            if (Humidity > 1)
-            {
-                Humidity = 1;
-            }
-            else if (Humidity < 0)
-            {
-                Humidity = 0;
-            }
+            return new WorldCellNextState(Temperature, CalculateNextHumidity(snapshot), 0);
+        }
+
+        private protected float CalculateNextHumidity(WorldCellStateSnapshot snapshot)
+        {
+            float humidity = snapshot.GetRegionHumidity(Position, HUMIDITY_SEARCH_RADIUS) * 0.999f;
+            return Math.Clamp(humidity, 0.0f, 1.0f);
         }
 
         #endregion
     }
 }
+
 

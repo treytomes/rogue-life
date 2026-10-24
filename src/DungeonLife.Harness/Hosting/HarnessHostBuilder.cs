@@ -37,14 +37,17 @@ internal static class HarnessHostBuilder
         builder.Logging.AddSerilog(serilog, dispose: true);
 
         builder.Services.AddSingleton(settings);
-        builder.Services.AddSingleton<IRandom>(_ => new SynchronizedRandom(new Pcg32Random(settings.Seed!.Value)));
+        builder.Services.AddSingleton<IRandom>(_ => new Pcg32Random(settings.Seed!.Value));
         builder.Services.AddSingleton<WorldGenerator>(_ => settings.Generator switch
         {
             "cavern" => new CavernGenerator(),
             "spacious" => new SpaciousCavernGenerator(),
             _ => throw new InvalidOperationException($"Unsupported world generator '{settings.Generator}'."),
         });
-        builder.Services.AddSingleton<WorldSimulation>();
+        builder.Services.AddSingleton(serviceProvider => new WorldSimulation(
+            serviceProvider.GetRequiredService<WorldGenerator>(),
+            serviceProvider.GetRequiredService<IRandom>(),
+            settings.Seed!.Value));
         builder.Services.AddSingleton<SimulationRunner>();
 
         return builder.Build();
@@ -160,4 +163,5 @@ internal static class HarnessHostBuilder
             .CreateLogger();
     }
 }
+
 

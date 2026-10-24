@@ -1,72 +1,47 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DungeonLife
 {
     [DisplayName("Dead")]
     class DeathByOldAgeBehavior : EntityBehavior
     {
-        /// <summary>
-        /// Check once a day to see if the entity should die.
-        /// </summary>
         private const int CHECK_INTERVAL = 1;
-
         private TimeSpan _lastDeathCheck = TimeSpan.Zero;
 
-        public DeathByOldAgeBehavior(Entity entity, TimeSpan lifeSpan)
-            : base(entity)
+        public DeathByOldAgeBehavior(Entity entity, TimeSpan lifeSpan) : base(entity)
         {
             MaxLifeSpan = lifeSpan;
         }
 
         public TimeSpan MaxLifeSpan { get; }
 
-        public override bool Update(IWorldState world)
+        internal override bool TryDecide(EntityDecisionContext context, out EntityIntent intent)
         {
-            if ((_entity.Age - _lastDeathCheck).TotalDays < CHECK_INTERVAL)
+            EntityStateSnapshot self = context.Self;
+            if ((self.Age - _lastDeathCheck).TotalDays < CHECK_INTERVAL)
             {
-                // Check about once a day to see if the entity is dead yet.
+                intent = EntityIntent.None(_entity);
                 return false;
             }
-            else
+
+            _lastDeathCheck = self.Age;
+            TimeSpan remainingLife = MaxLifeSpan - self.Age;
+            if (remainingLife.TotalDays >= 0)
             {
-                // You're living on borrowed time.
-
-                _lastDeathCheck = _entity.Age;
-
-                // Delta is the max remaining lifespan.  This will reduce over time.
-                var delta = MaxLifeSpan - _entity.Age;
-
-                //// As the delta goes to 0, increase the chance of suddenly dying.
-                //var deathPercent = (double)delta.Ticks / (double)MaxLifeSpan.Ticks;
-                //if (deathPercent < 1)
-                //{
-                //    deathPercent = Math.Tan(deathPercent * deathPercent);
-                //}
-
-                if (delta.TotalDays < 0)
-                {
-                    var deathPercent = _entity.Age.TotalDays / MaxLifeSpan.TotalDays - 1;
-                    if (Random.NextDouble() > (1 - deathPercent))  // Increased chance of random death the farther past it's lifespan the entity gets.
-                    {
-                        // You're dead!
-                        _entity.IsDead = true;
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
+                intent = EntityIntent.None(_entity);
+                return false;
             }
+
+            double deathProbability = self.Age.TotalDays / MaxLifeSpan.TotalDays - 1;
+            if (Random.NextDouble() > (1 - deathProbability))
+            {
+                intent = new EntityIntent(_entity, Dies: true);
+                return true;
+            }
+
+            intent = EntityIntent.None(_entity);
+            return false;
         }
     }
 }

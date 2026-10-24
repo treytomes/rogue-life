@@ -45,10 +45,13 @@ namespace DungeonLife.Hosting
             builder.Logging.AddSerilog(serilog, dispose: true);
 
             builder.Services.AddSingleton(startupSettings);
-            builder.Services.AddSingleton<IRandom>(_ => new SynchronizedRandom(new Pcg32Random(startupSettings.Seed!.Value)));
+            builder.Services.AddSingleton<IRandom>(_ => new Pcg32Random(startupSettings.Seed!.Value));
 
             builder.Services.AddSingleton<WorldGenerator, CavernGenerator>();
-            builder.Services.AddSingleton<WorldSimulation>();
+            builder.Services.AddSingleton(serviceProvider => new WorldSimulation(
+                serviceProvider.GetRequiredService<WorldGenerator>(),
+                serviceProvider.GetRequiredService<IRandom>(),
+                startupSettings.Seed!.Value));
             builder.Services.AddSingleton<MainWindowViewModel>();
             builder.Services.AddSingleton(serviceProvider =>
                 new MainWindow(serviceProvider.GetRequiredService<MainWindowViewModel>()));
@@ -151,4 +154,5 @@ namespace DungeonLife.Hosting
         }
     }
 }
+
 

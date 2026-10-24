@@ -73,14 +73,14 @@ explain why it changed.
   in their respective executable projects.
 - [x] Replace the process-wide `ThreadSafeRandom` usage with an injected,
   seedable random source owned by a simulation run. Record the seed with results.  Review and copy the `~\projects\learning\src\WormForaging.Core\Rng\Pcg32Random.cs` class along with it's interface.
-- [ ] Make random streams independent of thread scheduling. Prefer stable streams
+- [x] Make random streams independent of thread scheduling. Prefer stable streams
   keyed by run seed plus cell/entity identity and tick, or use a deterministic
   single-threaded update until an equivalent parallel scheme is established.
-- [ ] Give entities stable IDs and define stable iteration and conflict-resolution
+- [x] Give entities stable IDs and define stable iteration and conflict-resolution
   order for movement, resource use, births, and deaths.
-- [ ] Make each cell update read a consistent prior-state snapshot and write to a
+- [x] Make each cell update read a consistent prior-state snapshot and write to a
   next-state buffer. Commit the buffer at a defined tick boundary.
-- [ ] Make entity decisions from a defined snapshot, then resolve their intents
+- [x] Make entity decisions from a defined snapshot, then resolve their intents
   (movement, eating, drinking, reproduction) deterministically. Avoid concurrent
   mutation of neighboring cells and entities.
 - [ ] Add a replay check: the same model version, seed, parameters, and tick count
@@ -164,10 +164,8 @@ explain why it changed.
 
 ## Current review findings to resolve
 
-- [ ] Cell and entity updates currently run in parallel while reading and
-  mutating shared state, so outcomes can depend on scheduling.
-- [ ] The run-owned RNG is safe for concurrent access, but draw ordering can
-  still associate values with scheduler-dependent cell/entity updates.
+- [ ] Future runtime-created entities need component RNG streams keyed from their
+  stable IDs, as their IDs are assigned when added to the collection.
 - [ ] Entity reproduction is unfinished and not enabled; current populations
   cannot replace deaths.
 - [ ] The cohesion rule's implementation contradicts its intended name.
@@ -175,6 +173,11 @@ explain why it changed.
   cells.
 - [ ] UI cadence currently advances world time by one minute per timer tick;
   experiments need an explicit, independently controlled tick duration.
+
+
+
+
+
 
 
 
