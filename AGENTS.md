@@ -15,6 +15,7 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 - `src/DungeonLife.Core/` contains the platform-neutral simulation model, cells, entities, behaviors, and world generators. Keep Avalonia and Prism types out of Core.
 - `src/DungeonLife/Hosting/AppHostBuilder.cs` is the UI composition root. The Generic Host owns DI registrations; keep hosting and container dependencies out of Core.
 - The repository-root `appsettings.yaml` is found by walking up from the executable directory; `--config`, `--seed`, and `--log-level` are parsed at startup. The UI tick interval is runtime-configurable, while each model tick remains one simulated minute.
+- Microsoft.Extensions.Logging is routed through Serilog. Keep the console sink and daily rolling file sink configured by `Serilog` in the root YAML; relative `LogDirectory` paths resolve beside the active configuration file.
 - `src/DungeonLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
   - On each timer tick, call `WorldSimulation.Tick()` when running or stepping.
   - `Tick()` advances `WorldTime` by one minute, advances `AnimationTime`/`TickCount`, then calls `Update` on every cell and entity via `Parallel.ForEach` (65,536 cells).

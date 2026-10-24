@@ -9,5 +9,8 @@ Runtime:
   TickIntervalMilliseconds: 100
 
 Serilog:
-  # Consumed by the Serilog integration task; command-line --log-level will override this.
+  # The command-line --log-level option overrides this.
   MinimumLevel: Information
+  # Relative log paths are resolved from the directory containing this configuration file.
+  LogDirectory: logs
+  RetainedFileCountLimit: 14

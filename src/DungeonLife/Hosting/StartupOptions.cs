@@ -22,5 +22,6 @@ namespace DungeonLife.Hosting
         ulong? Seed,
         SeedSource SeedSource,
         int TickIntervalMilliseconds,
-        string? LogLevel);
+        string LogLevel,
+        string? ConfigurationFile);
 }

@@ -65,7 +65,7 @@ explain why it changed.
 - [x] Add YAML `appsettings.yaml` configuration for simulation defaults and
   runtime settings, with command-line overrides for run-specific values such as
   seed, configuration path, and log level.  The `appsettings.yaml` file should be stored and referenced from the repository root.
-- [ ] Add Microsoft.Extensions.Logging backed by Serilog, including console and
+- [x] Add Microsoft.Extensions.Logging backed by Serilog, including console and
   rolling file output, and log the resolved run configuration and seed.
 - [ ] Add a console harness that references `DungeonLife.Core`, builds its own
   Generic Host, and can run without Avalonia or a desktop session. Share

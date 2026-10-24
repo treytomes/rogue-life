@@ -5,12 +5,14 @@ using DungeonLife.Hosting;
 using DungeonLife.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace DungeonLife
 {
     public partial class App : Application
     {
         private IHost _host;
+        private ILogger<App> _logger;
 
         internal static StartupOptions StartupOptions { get; set; } = new StartupOptions(null, null, null);
 
@@ -26,6 +28,16 @@ namespace DungeonLife
                 _host = AppHostBuilder.Build(StartupOptions);
                 _host.Start();
 
+                _logger = _host.Services.GetRequiredService<ILogger<App>>();
+                var startupSettings = _host.Services.GetRequiredService<AppStartupSettings>();
+                _logger.LogInformation(
+                    "DungeonLife started with configured seed {Seed} ({SeedSource}), tick interval {TickIntervalMilliseconds} ms, configuration {ConfigurationFile}, and log level {LogLevel}",
+                    startupSettings.Seed,
+                    startupSettings.SeedSource,
+                    startupSettings.TickIntervalMilliseconds,
+                    startupSettings.ConfigurationFile ?? "defaults",
+                    startupSettings.LogLevel);
+
                 desktop.MainWindow = _host.Services.GetRequiredService<MainWindow>();
                 desktop.Exit += OnDesktopExit;
             }
@@ -35,6 +47,7 @@ namespace DungeonLife
 
         private void OnDesktopExit(object sender, ControlledApplicationLifetimeExitEventArgs e)
         {
+            _logger?.LogInformation("DungeonLife shutting down");
             _host?.StopAsync().GetAwaiter().GetResult();
             _host?.Dispose();
             _host = null;
