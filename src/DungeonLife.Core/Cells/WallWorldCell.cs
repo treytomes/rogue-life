@@ -1,9 +1,10 @@
 using System;
 namespace DungeonLife
 {
-    /// <summary>A wall cannot be passed.</summary>
+    /// <summary>Represents WallWorldCell in the simulation.</summary>
     public class WallWorldCell : WorldCell
     {
+        /// <summary>Creates an instance of WallWorldCell.</summary>
         public WallWorldCell(int x, int y) : base(x, y)
         {
             ForegroundColor = RgbColor.AnsiWhite;

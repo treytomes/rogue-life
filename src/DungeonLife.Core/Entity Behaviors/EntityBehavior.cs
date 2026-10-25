@@ -7,19 +7,24 @@ using System.Reflection;
 
 namespace DungeonLife
 {
+    /// <summary>Represents EntityBehavior in the simulation.</summary>
     public abstract class EntityBehavior
     {
+        /// <summary>Defines the _entity value.</summary>
         protected readonly Entity _entity;
+        /// <summary>Defines the Random value.</summary>
         protected IRandom Random => _entity.Random;
 
+        /// <summary>Executes the EntityBehavior behavior.</summary>
         protected EntityBehavior(Entity entity)
         {
             _entity = entity;
         }
 
-        /// <summary>Plans an action from the immutable world snapshot without changing world state.</summary>
+        /// <summary>Executes the TryDecide behavior.</summary>
         internal abstract bool TryDecide(EntityDecisionContext context, out EntityIntent intent);
 
+        /// <summary>Executes the ToString behavior.</summary>
         public override string ToString()
         {
             return GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? GetType().Name;

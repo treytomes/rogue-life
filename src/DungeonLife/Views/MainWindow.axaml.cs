@@ -7,11 +7,13 @@ using DungeonLife.ViewModels;
 
 namespace DungeonLife.Views
 {
+    /// <summary>Represents MainWindow in the simulation.</summary>
     public partial class MainWindow : Window
     {
         private readonly MainWindowViewModel _viewModel;
         private WorldView _worldView;
 
+        /// <summary>Creates an instance of MainWindow.</summary>
         public MainWindow()
         {
             InitializeComponent();
@@ -20,6 +22,7 @@ namespace DungeonLife.Views
             Height = LifeAppSettings.InitialWindowHeight;
         }
 
+        /// <summary>Creates an instance of MainWindow.</summary>
         public MainWindow(MainWindowViewModel viewModel) : this()
         {
             _viewModel = viewModel;
@@ -130,6 +133,7 @@ namespace DungeonLife.Views
             }
         }
 
+        /// <summary>Executes the OnClosed behavior.</summary>
         protected override void OnClosed(System.EventArgs e)
         {
             base.OnClosed(e);

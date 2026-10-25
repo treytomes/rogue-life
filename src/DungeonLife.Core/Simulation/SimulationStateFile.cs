@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace DungeonLife;
 
-/// <summary>Reads and writes versioned simulation checkpoints as JSON.</summary>
+/// <summary>Represents SimulationStateFile in the simulation.</summary>
 public static class SimulationStateFile
 {
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
+    /// <summary>SaveAsync simulation state.</summary>
     public static async Task SaveAsync(string path, SimulationSaveState state, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -19,6 +20,7 @@ public static class SimulationStateFile
         await JsonSerializer.SerializeAsync(stream, state, Options, cancellationToken);
     }
 
+    /// <summary>LoadAsync simulation state.</summary>
     public static async Task<SimulationSaveState> LoadAsync(string path, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);

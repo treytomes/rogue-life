@@ -1,7 +1,9 @@
 namespace DungeonLife
 {
+    /// <summary>Represents SpaciousCavernGenerator in the simulation.</summary>
     public class SpaciousCavernGenerator : WorldGenerator
     {
+        /// <summary>Executes the BuildWorld behavior.</summary>
         public override void BuildWorld(IWorldState world)
         {
             // Fill the area with floors.
@@ -40,6 +42,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Executes the PlaceEntities behavior.</summary>
         public override void PlaceEntities(IWorldState world)
         {
             var numEntities = _random.Next(50, 100);

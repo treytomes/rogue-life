@@ -9,6 +9,7 @@ using System;
 
 namespace DungeonLife.Views
 {
+    /// <summary>Represents WorldView in the simulation.</summary>
     public class WorldView : Control
     {
         #region Constants
@@ -31,6 +32,7 @@ namespace DungeonLife.Views
 
         #region Constructors
 
+        /// <summary>Creates an instance of WorldView.</summary>
         public WorldView()
         {
             Width = WorldSettings.WorldWidth * CellWidth;
@@ -45,15 +47,20 @@ namespace DungeonLife.Views
 
         #region Events
 
+        /// <summary>Defines the CellSelected value.</summary>
         public event EventHandler<CellSelectedEventArgs> CellSelected;
 
         #endregion
 
         #region Properties
 
+        /// <summary>Gets the CellWidth value.</summary>
         public double CellWidth { get; } = LifeAppSettings.GlyphWidth;
+        /// <summary>Gets the CellHeight value.</summary>
         public double CellHeight { get; } = LifeAppSettings.GlyphHeight;
+        /// <summary>Defines the LastRenderDuration value.</summary>
         public TimeSpan LastRenderDuration => _renderer.LastRenderDuration;
+        /// <summary>Defines the LastVisibleCellCount value.</summary>
         public int LastVisibleCellCount => _renderer.LastVisibleCellCount;
 
         internal WorldSimulation Simulation { get; set; }
@@ -62,6 +69,7 @@ namespace DungeonLife.Views
 
         #region Rendering
 
+        /// <summary>Executes the Render behavior.</summary>
         public override void Render(DrawingContext context)
         {
             base.Render(context);
@@ -88,6 +96,7 @@ namespace DungeonLife.Views
 
         #region Input
 
+        /// <summary>Executes the OnAttachedToVisualTree behavior.</summary>
         protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
         {
             base.OnAttachedToVisualTree(e);
@@ -99,6 +108,7 @@ namespace DungeonLife.Views
             }
         }
 
+        /// <summary>Executes the OnDetachedFromVisualTree behavior.</summary>
         protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
         {
             var scrollViewer = GetScrollViewer();
@@ -115,6 +125,7 @@ namespace DungeonLife.Views
             InvalidateVisual();
         }
 
+        /// <summary>Executes the OnPointerPressed behavior.</summary>
         protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             base.OnPointerPressed(e);
@@ -154,6 +165,7 @@ namespace DungeonLife.Views
             Focus();
         }
 
+        /// <summary>Executes the OnPointerMoved behavior.</summary>
         protected override void OnPointerMoved(PointerEventArgs e)
         {
             base.OnPointerMoved(e);
@@ -176,6 +188,7 @@ namespace DungeonLife.Views
             }
         }
 
+        /// <summary>Executes the OnPointerReleased behavior.</summary>
         protected override void OnPointerReleased(PointerReleasedEventArgs e)
         {
             base.OnPointerReleased(e);
@@ -186,6 +199,7 @@ namespace DungeonLife.Views
             e.Pointer.Capture(null);
         }
 
+        /// <summary>OnPointerCaptureLost simulation state.</summary>
         protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
         {
             base.OnPointerCaptureLost(e);

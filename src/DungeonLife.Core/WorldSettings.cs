@@ -5,13 +5,18 @@ namespace DungeonLife
     /// </summary>
     public static class WorldSettings
     {
-        /// <summary>Increment when model rules or state semantics change.</summary>
+        /// <summary>Defines the RulesVersion value.</summary>
         public const int RulesVersion = 1;
 
+        /// <summary>Gets the MinimumTemperature value.</summary>
         public static float MinimumTemperature { get; } = 0.0f;
+        /// <summary>Gets the MaximumTemperature value.</summary>
         public static float MaximumTemperature { get; } = 50.0f;
+        /// <summary>Gets the TemperatureRange value.</summary>
         public static float TemperatureRange { get; } = MaximumTemperature - MinimumTemperature;
+        /// <summary>Gets the WorldWidth value.</summary>
         public static int WorldWidth { get; } = 256;
+        /// <summary>Gets the WorldHeight value.</summary>
         public static int WorldHeight { get; } = 256;
 
         /// <summary>

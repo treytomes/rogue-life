@@ -9,7 +9,7 @@ namespace DungeonLife;
 /// so that experiments on the learning rule can be compared across conditions rather than across
 /// lucky dice. Every stochastic path in the simulation — network initialization, action
 /// sampling, food and heat-lamp placement, exploration noise — draws from an <see cref="IRandom"/>
-/// rather than from an ambient <see cref="Random"/>. Nothing in <c>WormForaging.Core</c>
+/// rather than from an ambient <see cref="System.Random"/>. Nothing in <c>WormForaging.Core</c>
 /// is allowed to reach for the system clock or a global RNG.
 /// </para>
 /// <para>
@@ -59,7 +59,7 @@ public interface IRandom
     /// </summary>
     /// <param name="maxExclusive">The exclusive upper bound. Must be greater than zero.</param>
     /// <returns>A pseudo-random <see cref="int"/> in <c>[0, <paramref name="maxExclusive"/>)</c>.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">
+    /// <exception cref="System.ArgumentOutOfRangeException">
     /// Thrown when <paramref name="maxExclusive"/> is less than or equal to zero.
     /// </exception>
     int NextInt(int maxExclusive);

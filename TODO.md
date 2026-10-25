@@ -91,7 +91,7 @@ explain why it changed.
 
 ## Phase 2: Validate existing rules
 
-- [ ] Configure every `.csproj` to require documentation, and to treat warnings as errors, then build and fix the errors you find.
+- [x] Configure every `.csproj` to require documentation, and to treat warnings as errors, then build and fix the errors you find.
 - [ ] Fix neighborhood averages at world edges. `AverageOver` currently divides
   by the full square area even when `IterateOver` clips the sample to the map.
 - [ ] Implement and validate the specified cell-neighborhood geometry and edge

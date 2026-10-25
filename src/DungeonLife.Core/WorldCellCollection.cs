@@ -6,10 +6,12 @@ using System.Numerics;
 
 namespace DungeonLife
 {
+    /// <summary>Represents WorldCellCollection in the simulation.</summary>
     public class WorldCellCollection : IEnumerable<WorldCell>
     {
         private readonly WorldCell[,] _cells;
 
+        /// <summary>Creates an instance of WorldCellCollection.</summary>
         public WorldCellCollection(int width, int height)
         {
             Width = width;
@@ -17,9 +19,12 @@ namespace DungeonLife
             _cells = new WorldCell[width, height];
         }
 
+        /// <summary>Gets the Width value.</summary>
         public int Width { get; }
+        /// <summary>Gets the Height value.</summary>
         public int Height { get; }
 
+        /// <summary>Gets the cell or entity at the specified coordinates.</summary>
         public WorldCell this[int x, int y]
         {
             get
@@ -40,6 +45,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Gets the cell or entity at the specified coordinates.</summary>
         public WorldCell this[Vector2 pnt]
         {
             get
@@ -52,6 +58,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Executes the IterateOver behavior.</summary>
         public IEnumerable<WorldCell> IterateOver(Vector2 position, float radius)
         {
             var xMin = (int)Math.Max(0, position.X - radius);
@@ -69,11 +76,13 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Executes the SumOver behavior.</summary>
         public float SumOver(Vector2 position, float radius, Func<WorldCell, float> property)
         {
             return IterateOver(position, radius).Sum(property);
         }
 
+        /// <summary>Executes the AverageOver behavior.</summary>
         public float AverageOver(Vector2 position, float radius, Func<WorldCell, float> property)
         {
             var numCells = 4 * radius * radius + 2 * (radius * 2) + 1; // (radius * 2 + 1) * (radius * 2 + 1);
@@ -96,6 +105,7 @@ namespace DungeonLife
             return AverageOver(position, radius, c => c.Humidity);
         }
 
+        /// <summary>Executes the IsMovementBlocked behavior.</summary>
         public bool IsMovementBlocked(Vector2 position)
         {
             return (this[position]?.BlocksMovement).GetValueOrDefault(true);
@@ -122,6 +132,7 @@ namespace DungeonLife
                 }
             }
         }
+        /// <summary>Executes the GetEnumerator behavior.</summary>
         public IEnumerator<WorldCell> GetEnumerator()
         {
             for (var x = 0; x < Width; x++)

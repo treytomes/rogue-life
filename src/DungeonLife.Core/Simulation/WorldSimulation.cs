@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DungeonLife
 {
+    /// <summary>Represents WorldSimulation in the simulation.</summary>
     public class WorldSimulation : IWorldState
     {
         #region Constants
@@ -18,6 +19,7 @@ namespace DungeonLife
 
         #region Constructors
 
+        /// <summary>Creates an instance of WorldSimulation.</summary>
         public WorldSimulation(WorldGenerator generator, IRandom random, ulong runSeed)
         {
             Random = random ?? throw new ArgumentNullException(nameof(random));
@@ -29,6 +31,7 @@ namespace DungeonLife
             InitializeComponentRandomStreams();
         }
 
+        /// <summary>FromSavedState simulation state.</summary>
         public static WorldSimulation FromSavedState(SimulationSaveState state)
         {
             ArgumentNullException.ThrowIfNull(state);
@@ -47,12 +50,19 @@ namespace DungeonLife
 
         #region Properties
 
+        /// <summary>Gets or sets the WorldTime value.</summary>
         public TimeSpan WorldTime { get; set; }
+        /// <summary>Gets the Cells value.</summary>
         public WorldCellCollection Cells { get; }
+        /// <summary>Gets the Random value.</summary>
         public IRandom Random { get; }
+        /// <summary>Gets the RunSeed value.</summary>
         public ulong RunSeed { get; }
+        /// <summary>Gets the Entities value.</summary>
         public EntityCollection Entities { get; }
+        /// <summary>Gets or sets the IsRunning value.</summary>
         public bool IsRunning { get; set; } = true;
+        /// <summary>Gets or sets the IsStepping value.</summary>
         public bool IsStepping { get; set; }
 
         /// <summary>
@@ -60,10 +70,13 @@ namespace DungeonLife
         /// </summary>
         public TimeSpan AnimationTime { get; private set; } = TimeSpan.Zero;
 
+        /// <summary>Gets or sets the TickCount value.</summary>
         public long TickCount { get; private set; }
 
+        /// <summary>Gets or sets the LastTickDuration value.</summary>
         public TimeSpan LastTickDuration { get; private set; }
 
+        /// <summary>CaptureState simulation state.</summary>
         public SimulationSaveState CaptureState(string generator)
         {
             if (Random is not Pcg32Random runRandom)
@@ -82,6 +95,7 @@ namespace DungeonLife
                 runRandom.CaptureState(), cells, Entities.Select(entity => entity.CaptureSavedState()).ToArray());
         }
 
+        /// <summary>RestoreState simulation state.</summary>
         public void RestoreState(SimulationSaveState state, string generator)
         {
             ArgumentNullException.ThrowIfNull(state);
@@ -130,11 +144,13 @@ namespace DungeonLife
 
         #region Methods
 
+        /// <summary>Executes the IsMovementBlocked behavior.</summary>
         public bool IsMovementBlocked(float x, float y)
         {
             return IsMovementBlocked(new Vector2(x, y));
         }
 
+        /// <summary>Executes the IsMovementBlocked behavior.</summary>
         public bool IsMovementBlocked(Vector2 position)
         {
             return Cells.IsMovementBlocked(position) || Entities.IsMovementBlocked(position);
@@ -172,6 +188,7 @@ namespace DungeonLife
             value = (value ^ (value >> 27)) * 0x94D049BB133111EBUL;
             return value ^ (value >> 31);
         }
+        /// <summary>Advances the world by one simulation tick.</summary>
         public void Tick()
         {
             var start = Stopwatch.GetTimestamp();

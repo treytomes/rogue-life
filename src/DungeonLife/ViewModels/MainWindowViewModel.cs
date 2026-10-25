@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace DungeonLife.ViewModels
 {
+    /// <summary>Represents MainWindowViewModel in the simulation.</summary>
     public class MainWindowViewModel : BindableBase, IDisposable
     {
         #region Constants
@@ -50,6 +51,7 @@ namespace DungeonLife.ViewModels
 
         #region Constructors
 
+        /// <summary>Creates an instance of MainWindowViewModel.</summary>
         public MainWindowViewModel(WorldSimulation simulation, AppStartupSettings startupSettings)
         {
             Simulation = simulation;
@@ -72,6 +74,7 @@ namespace DungeonLife.ViewModels
 
         #region Events
 
+        /// <summary>Defines the WorldUpdated value.</summary>
         public event EventHandler WorldUpdated;
 
         #endregion
@@ -80,12 +83,17 @@ namespace DungeonLife.ViewModels
 
         internal WorldSimulation Simulation { get; private set; }
 
+        /// <summary>Defines the SimulationReplaced value.</summary>
         public event EventHandler SimulationReplaced;
 
+        /// <summary>Gets the RunCommand value.</summary>
         public DelegateCommand RunCommand { get; }
+        /// <summary>Gets the PauseCommand value.</summary>
         public DelegateCommand PauseCommand { get; }
+        /// <summary>Gets the StepCommand value.</summary>
         public DelegateCommand StepCommand { get; }
 
+        /// <summary>Documents this simulation API member.</summary>
         public bool IsRunning
         {
             get => _isRunning;
@@ -98,108 +106,126 @@ namespace DungeonLife.ViewModels
             }
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string TimeText
         {
             get => _timeText;
             private set => SetProperty(ref _timeText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string PerformanceText
         {
             get => _performanceText;
             private set => SetProperty(ref _performanceText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string CellHeader
         {
             get => _cellHeader;
             private set => SetProperty(ref _cellHeader, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string AlgaeText
         {
             get => _algaeText;
             private set => SetProperty(ref _algaeText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string TemperatureText
         {
             get => _temperatureText;
             private set => SetProperty(ref _temperatureText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string HumidityText
         {
             get => _humidityText;
             private set => SetProperty(ref _humidityText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public bool HasSelectedEntity
         {
             get => _hasSelectedEntity;
             private set => SetProperty(ref _hasSelectedEntity, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityHeader
         {
             get => _entityHeader;
             private set => SetProperty(ref _entityHeader, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityName
         {
             get => _entityName;
             private set => SetProperty(ref _entityName, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public IBrush EntityNameBrush
         {
             get => _entityNameBrush;
             private set => SetProperty(ref _entityNameBrush, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityAgeText
         {
             get => _entityAgeText;
             private set => SetProperty(ref _entityAgeText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityHungerText
         {
             get => _entityHungerText;
             private set => SetProperty(ref _entityHungerText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public double EntityHunger
         {
             get => _entityHunger;
             private set => SetProperty(ref _entityHunger, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityThirstText
         {
             get => _entityThirstText;
             private set => SetProperty(ref _entityThirstText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public double EntityThirst
         {
             get => _entityThirst;
             private set => SetProperty(ref _entityThirst, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityMetabolismText
         {
             get => _entityMetabolismText;
             private set => SetProperty(ref _entityMetabolismText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityIsChildText
         {
             get => _entityIsChildText;
             private set => SetProperty(ref _entityIsChildText, value);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public string EntityStateText
         {
             get => _entityStateText;
@@ -210,11 +236,13 @@ namespace DungeonLife.ViewModels
 
         #region Methods
 
+        /// <summary>Executes the UpdatePerformance behavior.</summary>
         public void UpdatePerformance(TimeSpan tickDuration, TimeSpan renderDuration, int visibleCellCount)
         {
             PerformanceText = $"Tick: {tickDuration.TotalMilliseconds:0.0} ms  Render: {renderDuration.TotalMilliseconds:0.0} ms  Cells: {visibleCellCount}";
         }
 
+        /// <summary>Executes the SelectCell behavior.</summary>
         public void SelectCell(int x, int y)
         {
             _selectedCell = Simulation.Cells[x, y];
@@ -234,18 +262,21 @@ namespace DungeonLife.ViewModels
             WorldUpdated?.Invoke(this, EventArgs.Empty);
         }
 
+        /// <summary>Executes the Dispose behavior.</summary>
         public void Dispose()
         {
             _timer.Stop();
             _timer.Tick -= OnTimerTick;
         }
 
+        /// <summary>SaveSimulationAsync simulation state.</summary>
         public async Task SaveSimulationAsync(string path)
         {
             Pause();
             await SimulationStateFile.SaveAsync(path, Simulation.CaptureState("cavern"));
         }
 
+        /// <summary>LoadSimulationAsync simulation state.</summary>
         public async Task LoadSimulationAsync(string path)
         {
             Pause();

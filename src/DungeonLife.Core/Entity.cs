@@ -4,6 +4,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
+    /// <summary>Represents Entity in the simulation.</summary>
     public class Entity
     {
         #region Fields
@@ -16,6 +17,7 @@ namespace DungeonLife
 
         #region Constructors
 
+        /// <summary>Creates an instance of Entity.</summary>
         public Entity(int x, int y, IRandom random, Gender? gender = null)
         {
             Random = random ?? throw new ArgumentNullException(nameof(random));
@@ -37,9 +39,13 @@ namespace DungeonLife
 
         // A high thirst multiplier makes the entity favor water like a duck.
 
+        /// <summary>Gets or sets the HungerMultiplier value.</summary>
         public float HungerMultiplier { get; protected set; } = 1.5f;
+        /// <summary>Gets or sets the ThirstMultiplier value.</summary>
         public float ThirstMultiplier { get; protected set; } = 3.0f;
+        /// <summary>Gets or sets the RangeOfSightMultiplier value.</summary>
         public float RangeOfSightMultiplier { get; protected set; } = 0.3f;
+        /// <summary>Gets or sets the RangeOfSmellMultiplier value.</summary>
         public float RangeOfSmellMultiplier { get; protected set; } = 0.5f;
 
         /// <summary>
@@ -48,8 +54,10 @@ namespace DungeonLife
         /// </summary>
         public List<EntityBehavior> Behaviors { get; } = new List<EntityBehavior>();
 
+        /// <summary>Gets or sets the ActiveBehavior value.</summary>
         public EntityBehavior ActiveBehavior { get; private set; }
 
+        /// <summary>Documents this simulation API member.</summary>
         public Vector2 MovingDirection
         {
             get
@@ -69,12 +77,17 @@ namespace DungeonLife
             }
         }
 
-        /// <summary>Stable simulation identity assigned when the entity enters its collection.</summary>
+        /// <summary>Gets or sets the Id value.</summary>
         public long Id { get; internal set; }
+        /// <summary>Gets or sets the Random value.</summary>
         public IRandom Random { get; internal set; }
+        /// <summary>Gets or sets the Position value.</summary>
         public Vector2 Position { get; set; }
+        /// <summary>Gets or sets the MaturityAge value.</summary>
         public TimeSpan MaturityAge { get; protected set; }
+        /// <summary>Gets or sets the Age value.</summary>
         public TimeSpan Age { get; private set; }
+        /// <summary>Gets the Gender value.</summary>
         public Gender Gender { get; }
 
         /// <summary>
@@ -87,6 +100,7 @@ namespace DungeonLife
         /// </summary>
         public int BasePerception { get; protected set; }
 
+        /// <summary>Documents this simulation API member.</summary>
         public int ActualPerception
         {
             get
@@ -95,8 +109,10 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Gets or sets the BaseSpeed value.</summary>
         public int BaseSpeed { get; protected set; }
 
+        /// <summary>Documents this simulation API member.</summary>
         public int ActualSpeed
         {
             get
@@ -105,6 +121,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public float RangeOfSight
         {
             get
@@ -113,6 +130,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public float RangeOfSmell
         {
             get
@@ -131,9 +149,12 @@ namespace DungeonLife
         /// </summary>
         public float Thirst { get; set; }
 
+        /// <summary>Gets or sets the BabyGlyph value.</summary>
         public int BabyGlyph { get; protected set; }
+        /// <summary>Gets or sets the AdultGlyph value.</summary>
         public int AdultGlyph { get; protected set; }
 
+        /// <summary>Documents this simulation API member.</summary>
         public bool IsAdult
         {
             get
@@ -142,6 +163,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public bool IsChild
         {
             get
@@ -150,6 +172,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Gets or sets the IsDead value.</summary>
         public bool IsDead { get; set; } = false;
 
         internal void RestoreSavedState(EntitySavedState state)
@@ -202,6 +225,7 @@ namespace DungeonLife
                 lastDeathCheckTicks, activeBehaviorIndex);
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public int Glyph
         {
             get
@@ -217,6 +241,7 @@ namespace DungeonLife
             }
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public RgbColor ForegroundColor
         {
             get

@@ -1,13 +1,17 @@
 using System;
 namespace DungeonLife
 {
-    /// <summary>Water defies temperature changes, and will spread humidity as it warms up.</summary>
+    /// <summary>Represents WaterSourceCell in the simulation.</summary>
     public class WaterSourceCell : WorldCell
     {
+        /// <summary>Defines the GLYPH_WATER1 value.</summary>
         public const int GLYPH_WATER1 = '~';
+        /// <summary>Defines the GLYPH_WATER2 value.</summary>
         public const int GLYPH_WATER2 = 247;
+        /// <summary>Defines the ANIMATE_MS value.</summary>
         public const int ANIMATE_MS = 500;
 
+        /// <summary>Creates an instance of WaterSourceCell.</summary>
         public WaterSourceCell(int x, int y) : base(x, y)
         {
             ForegroundColor = RgbColor.AnsiWhite;

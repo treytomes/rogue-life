@@ -2,11 +2,12 @@ using System;
 
 namespace DungeonLife
 {
-    /// <summary>A wall that emanates heat throughout the day.</summary>
+    /// <summary>Represents BorderWorldCell in the simulation.</summary>
     public class BorderWorldCell : WallWorldCell
     {
         private const double MINUTES_PER_DAY = 24 * 60;
 
+        /// <summary>Creates an instance of BorderWorldCell.</summary>
         public BorderWorldCell(int x, int y) : base(x, y)
         {
         }

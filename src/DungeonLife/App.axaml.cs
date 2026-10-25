@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DungeonLife
 {
+    /// <summary>Represents App in the simulation.</summary>
     public partial class App : Application
     {
         private IHost _host;
@@ -16,11 +17,13 @@ namespace DungeonLife
 
         internal static StartupOptions StartupOptions { get; set; } = new StartupOptions(null, null, null);
 
+        /// <summary>Executes the Initialize behavior.</summary>
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
+        /// <summary>Executes the OnFrameworkInitializationCompleted behavior.</summary>
         public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

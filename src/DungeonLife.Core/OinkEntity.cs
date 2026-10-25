@@ -3,12 +3,14 @@ using System.ComponentModel;
 
 namespace DungeonLife
 {
+    /// <summary>Represents OinkEntity in the simulation.</summary>
     [DisplayName("Oink")]
     public class OinkEntity : Entity
     {
         private const int GLYPH_BABY = 148;
         private const int GLYPH_ADULT = 153;
 
+        /// <summary>Creates an instance of OinkEntity.</summary>
         public OinkEntity(int x, int y, IRandom random)
             : base(x, y, random)
         {

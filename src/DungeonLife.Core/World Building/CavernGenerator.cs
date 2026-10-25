@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace DungeonLife
 {
+    /// <summary>Represents CavernGenerator in the simulation.</summary>
     public class CavernGenerator : WorldGenerator
     {
 		#region Constants
@@ -25,6 +26,7 @@ namespace DungeonLife
 
         #region Methods
 
+        /// <summary>Executes the BuildWorld behavior.</summary>
         public override void BuildWorld(IWorldState world)
         {
 			GenerateCavern(world);
@@ -32,6 +34,7 @@ namespace DungeonLife
 			ConnectRegions(world);
 		}
 
+		/// <summary>Executes the PlaceEntities behavior.</summary>
 		public override void PlaceEntities(IWorldState world)
         {
 			var numEntities = _random.Next(50, 100);
@@ -176,8 +179,10 @@ namespace DungeonLife
 		/// <remarks>
 		/// Rooms that are too small will be removed from the regions list.
 		/// </remarks>
+		/// <param name="world">The world whose regions are updated.</param>
+		/// <param name="regions">The regions to inspect.</param>
 		/// <param name="thresholdSize">If a region is &lt;= this size, delete it.</param>
-		/// <param name="revertPrototype">The tile prototype to use when deleting small regions.</param>
+		/// <param name="checkWalls">Whether removed regions are replaced with floor.</param>
 		private void EnsureMinimumSize(IWorldState world, List<List<Vector2>> regions, int thresholdSize, bool checkWalls)
 		{
 			for (var index = 0; index < regions.Count; index++)

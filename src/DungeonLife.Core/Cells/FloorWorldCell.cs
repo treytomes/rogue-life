@@ -17,6 +17,7 @@ namespace DungeonLife
         /// </summary>
         const float AGE_RATE = 0.01f; // 0.001f might work better.
 
+        /// <summary>Creates an instance of FloorWorldCell.</summary>
         public FloorWorldCell(int x, int y)
             : base(x, y)
         {
@@ -29,6 +30,7 @@ namespace DungeonLife
             ForegroundColor = RgbColor.AnsiBlackBright;
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public override int Glyph
         {
             get
@@ -45,6 +47,7 @@ namespace DungeonLife
             set => base.Glyph = value;
         }
 
+        /// <summary>Documents this simulation API member.</summary>
         public override RgbColor ForegroundColor
         {
             get
@@ -61,6 +64,7 @@ namespace DungeonLife
             set => base.ForegroundColor = value;
         }
 
+        /// <summary>Gets or sets the AlgaeLevel value.</summary>
         public float AlgaeLevel { get; set; }
 
         private float GetRegionAlgae(WorldCellStateSnapshot snapshot, Vector2 position, int radius)
