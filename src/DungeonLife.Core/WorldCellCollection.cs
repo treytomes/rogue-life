@@ -82,11 +82,20 @@ namespace DungeonLife
             return IterateOver(position, radius).Sum(property);
         }
 
-        /// <summary>Executes the AverageOver behavior.</summary>
+        /// <summary>Returns the average of a property over sampled in-bounds cells.</summary>
         public float AverageOver(Vector2 position, float radius, Func<WorldCell, float> property)
         {
-            var numCells = 4 * radius * radius + 2 * (radius * 2) + 1; // (radius * 2 + 1) * (radius * 2 + 1);
-            return SumOver(position, radius, property) / numCells;
+            ArgumentNullException.ThrowIfNull(property);
+
+            float sum = 0;
+            int count = 0;
+            foreach (WorldCell cell in IterateOver(position, radius))
+            {
+                sum += property(cell);
+                count++;
+            }
+
+            return count == 0 ? 0 : sum / count;
         }
 
         /// <summary>

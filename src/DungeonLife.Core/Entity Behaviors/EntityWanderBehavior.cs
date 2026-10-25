@@ -20,7 +20,13 @@ namespace DungeonLife
             if (Random.NextDouble() > _changeDirectionChance)
             {
                 Vector2 newDirection = Random.NextDirection();
-                Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + newDirection) / (MAINTENANCE_BIAS + 1));
+                Vector2 blendedDirection = (context.Self.MovingDirection * MAINTENANCE_BIAS + newDirection) / (MAINTENANCE_BIAS + 1);
+                if (!TryNormalize(blendedDirection, out Vector2 direction))
+                {
+                    intent = EntityIntent.None(_entity);
+                    return false;
+                }
+
                 intent = new EntityIntent(_entity, MovingDirection: direction);
                 return true;
             }

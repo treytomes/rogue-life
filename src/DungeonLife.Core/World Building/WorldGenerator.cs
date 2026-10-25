@@ -52,7 +52,6 @@ namespace DungeonLife
         protected void CreateBorderWall(IWorldState world, int x, int y)
         {
             var wall = new BorderWorldCell(x, y);
-            wall.Temperature = WorldSettings.IdealTemperature;
             wall.Humidity = (float)_random.NextDouble() * 0.02f;
             world.Cells[x, y] = wall;
         }

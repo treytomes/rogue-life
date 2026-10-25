@@ -42,9 +42,9 @@ namespace DungeonLife
                 }
 
                 Vector2 delta = food.Position - self.Position;
-                if (delta != Vector2.Zero)
+                if (TryNormalize(delta, out Vector2 direction))
                 {
-                    intent = new EntityIntent(_entity, MovingDirection: Vector2.Normalize(delta));
+                    intent = new EntityIntent(_entity, MovingDirection: direction);
                     return true;
                 }
             }

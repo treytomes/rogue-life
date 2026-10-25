@@ -21,8 +21,13 @@ public static class RandomExtensions
     }
 
     /// <summary>Executes the NextDirection behavior.</summary>
-    public static Vector2 NextDirection(this IRandom random) =>
-        Vector2.Normalize(new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2.0f - Vector2.One);
+    public static Vector2 NextDirection(this IRandom random)
+    {
+        Vector2 direction = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * 2.0f - Vector2.One;
+        if (direction == Vector2.Zero) return Vector2.UnitX;
+
+        return Vector2.Normalize(direction);
+    }
 
     /// <summary>Defines the struct value.</summary>
     public static TEnum NextEnum<TEnum>(this IRandom random) where TEnum : struct, Enum

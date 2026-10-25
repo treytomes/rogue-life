@@ -73,9 +73,10 @@ rules remain marked inline and in `TODO.md`.
   at the start of the movement step.
 - **Border humidity:** **reset to zero each tick (agreed),** matching ordinary
   walls. Its generated initial humidity does not persist into simulation ticks.
-- **Border temperature:** **use a precise 24-hour sinusoid (agreed),** from 0°C
-  at midnight to 50°C at midday and back to 0°C at the next midnight. The phase
-  is based on time of day, not elapsed-hour arithmetic with an approximate period.
+- **Border temperature:** **use a precise 24-hour sinusoid (agreed),** from the
+  configured minimum at midnight to the maximum at midday and back to the
+  minimum at the next midnight. With current limits, these are 0°C and 50°C.
+  The phase is based on time of day, not an approximate elapsed-hour period.
 - **Reproduction:** **no births in version 1 (agreed).** Reproduction is deferred
   to a later rules version; the active population is not replenished.
 - **Old-age mortality:** **keep the probabilistic current rule (agreed).** No
@@ -133,8 +134,8 @@ machine-readable format and ensure every field can be reproduced or validated.
    uses this advanced timestamp.
 2. Capture the cell state at the start of the cell phase.
 3. Derive each cell's next humidity from that same snapshot. Apply the water
-   humidity source/sink and ordinary wall humidity reset as part of this
-   derivation. Border humidity behavior remains open for v1 review.
+   humidity source/sink and wall and border humidity resets as part of this
+   derivation; both wall types commit humidity zero.
 4. Compute next algae and temperature from the old snapshot, using the cell's
    derived humidity for humidity-sensitive rules. Temperature averages read old
    neighbor temperatures. Commit all cell fields together.
@@ -176,37 +177,118 @@ current behavior-before-cost order while making it explicit for v1.
 All cells have temperature, humidity, a movement multiplier, and a terrain
 type. A missing or out-of-bounds cell blocks movement. Neighborhood sampling
 uses an axis-aligned square that includes the center and is clipped to the world.
-**Averages divide by the number of in-bounds cells sampled.** Current
-`AverageOver` instead divides by the unclipped square area, so it does not yet
-implement this rule and edge averages are biased low. Radius 1 is used for
-temperature and algae sums; radius 2 is used for humidity.
+**Averages divide by the number of in-bounds cells sampled.** `AverageOver`
+counts the cells yielded by the clipped square, so edge neighborhoods are
+normalized by their actual sample count. Cell-target searches first scan a
+bounding square, then discard cells outside the requested Euclidean radius.
+Radius 1 is used for temperature and algae sums; radius 2 is used for humidity.
 
 ### Shared humidity update
 
 Before a normal cell's specialized update, humidity becomes 0.999 times the
-average humidity in its radius-2 square. The average currently uses the fixed
-25-cell denominator even at map edges. Specialized rules may then change
+average humidity in its radius-2 square. At map edges, the average uses only
+the in-bounds cells in the clipped square. Specialized rules may then change
 humidity.
+
+### Coupled heat and humidity audit
+
+The model reads all source values from one immutable pre-cell snapshot. For an
+ordinary floor, let `Havg` be the radius-2 humidity average and `Tavg` the
+radius-1 temperature average. The calculated next humidity is
+`Hnext = clamp(0.999 * Havg, 0, 1)`. This is a smoothing-to-neighborhood rule,
+not a conventional relaxation of the form `H + rate * (Havg - H)`: the 0.999
+factor is a per-tick 0.1% sink. A spatially uniform source-free humidity field
+therefore decays to `0.999 * H` each tick.
+
+Water first calculates that same `Hnext`, then applies its temperature-driven
+term using the water cell's old temperature: add `0.1 * (T - idealTemperature)`
+when `T` is above ideal, subtract 0.1 when below ideal, and add nothing at
+exactly ideal. The result is clamped to [0, 1]. This is the only explicit
+humidity source; the cold-water term, the 0.999 factor, clamps, and wall/border
+resets are sinks. There is no humidity transport from out-of-bounds locations.
+
+Temperature uses the radius-1 average from the old snapshot. Before the small
+ideal-temperature adjustment, the diffusion equations are:
+
+| Cell type | Temperature after diffusion | Effective neighbor rate |
+| --- | --- | --- |
+| Floor | `T + (1 - Hnext) * (Tavg - T)` | `1 - Hnext`, from 0 to 1; humidity slows diffusion |
+| Water | `(2 * T + Tavg) / 3` | 1/3 |
+| Wall | `(5 * T + Tavg) / 6` | 1/6 |
+| Border | Replaced by the 24-hour sinusoidal forcing | External time-dependent source |
+
+For floors, water, and walls, the resulting temperature then moves by at most
+0.001 degrees toward the 21°C ideal. If the remaining difference is at most
+0.001 degrees, temperature is set exactly to ideal rather than crossing it.
+This shared rule gives exact convergence without a small alternating offset.
+The border forcing is
+`minimumTemperature + temperatureRange / 2 * (1 - cos(phase))`, an external
+heat source bounded by the configured minimum and maximum temperatures.
+
+Under the v1 initial bounds `temperature ∈ [0, 50]` and `humidity ∈ [0, 1]`,
+humidity remains in range because each normal/water calculation clamps and
+walls/borders reset to zero. Temperature diffusion is a convex blend of the
+cell and an in-bounds average, followed by an inward ideal-temperature step;
+the border forcing is also in [0, 50]. These rules therefore preserve those
+ranges without an additional temperature clamp, assuming valid initial or
+loaded state. A uniform temperature field has no diffusion flux; only the
+ideal-temperature adjustment or border forcing changes it.
+
+The implementation avoids cell-order bias: `WorldSimulation.Tick` advances
+the clock, captures one cell snapshot, calculates all `WorldCellNextState`
+values from it in parallel, and commits only after every calculation finishes.
+Humidity-sensitive floor algae and floor heat use that cell's calculated
+`Hnext`; all neighbor averages still read old snapshot values. Water's humidity
+source likewise uses its old temperature. Thus no cell sees a neighbor's
+partially updated heat or humidity during the same tick.
 
 ### Floor and algae
 
 - A floor's radius-1 algae value is the sum of `AlgaeLevel` over floor cells in
   the 3x3 square, including itself. Wall and water cells contribute zero.
-- For an occupied floor (`AlgaeLevel > 0`), the proposed delta is +0.1 when the
-  neighborhood sum is in [2.5, 4.5], otherwise -0.1. For an empty floor, it is
-  +1.0 when the sum is in [3.5, 4.5], otherwise zero.
-- The delta is multiplied by `1 - 0.8 * abs(sin(tempFactor))`, where
-  `tempFactor = 2 - 1 / (2 * (temperature - idealTemperature))`; when the
-  denominator is zero, the reciprocal term is set to 1 instead.
-- If humidity is below 0.01, the delta is zeroed. Below 0.5, it is multiplied
-  by `1 - humidity`; at or above 0.5, by `1 + humidity - 0.5`.
-- After applying the delta, positive algae loses 0.01 per tick when temperature
-  is above ideal by more than 0.001 degrees; otherwise it loses `0.01 *
-  humidity`. Values below 0.1 become zero; values above 1 become 1.
+- For an occupied floor (`AlgaeLevel > 0`), the initial delta is +0.1 when the
+  neighborhood sum is in the inclusive interval [2.5, 4.5], otherwise -0.1.
+  For an empty floor, it is +1.0 when the sum is in [3.5, 4.5], otherwise
+  zero.
+- The delta is multiplied by a smooth bounded temperature response. Define
+  `d = clamp((idealTemperature - T) / (idealTemperature - minimumTemperature), 0, 1)`
+  below ideal, and
+  `d = clamp((T - idealTemperature) / (maximumTemperature - idealTemperature), 0, 1)`
+  at or above ideal. Then `F(T) = 1 - 0.8 * d^2`. At ideal, `F = 1`; at either
+  configured temperature bound, `F = 0.2`. The curve is continuous and has
+  zero slope at ideal. If a configured span is zero, its normalized distance
+  uses zero, avoiding division by zero.
+- Humidity response is piecewise: below 0.01 the delta becomes zero; from 0.01
+  (inclusive) to below 0.5 it is multiplied by `1 - humidity`; from 0.5
+  (inclusive) through 1 it is multiplied by `1 + humidity - 0.5`.
+- After applying the resulting delta, if algae is positive it loses 0.01 per
+  tick when temperature is greater than ideal by more than 0.001 degrees;
+  otherwise it loses `0.01 * humidity`. The result is clamped by mapping values
+  below 0.1 to zero and values above 1 to 1. Exact values 0.1 and 1 are retained.
 - Finally, a floor independently gains algae with probability `0.01 * humidity`,
-  at a random level in [0.5, 1). This can replace the computed value.
+  at a random level in [0.5, 1). This spontaneous-generation event replaces
+  the computed value, including any result of the clamp.
+- Boundary cases for the current equation:
+
+  | Input | Boundary behavior |
+  | --- | --- |
+  | Neighborhood sum 2.5 or 4.5, occupied | Uses the +0.1 branch; immediately outside uses -0.1. |
+  | Neighborhood sum 3.5 or 4.5, empty | Uses the +1.0 branch; immediately outside uses 0. |
+  | Humidity 0 | Delta and spontaneous generation are zero; at or below ideal + 0.001, algae aging is also zero. |
+  | Humidity just below 0.01 / exactly 0.01 | Delta is suppressed below the threshold and scaled by 0.99 at the threshold. |
+  | Humidity 0.5 / 1 | Wet scaling is 1 / 1.5; spontaneous-generation chance is 0.5% / 1%. |
+  | Algae result 0.099 / 0.1 / 1 / 1.001 | Clamps to 0 / remains 0.1 / remains 1 / clamps to 1. |
+  | Temperature 0 / exactly ideal / 50 | Response is 0.2 / 1 / 0.2 for the current [0, 50] bounds and 21°C ideal. |
+- Deterministic local equilibrium occurs when the scaled delta equals the aging
+  loss and the resulting algae value remains in [0.1, 1], or when upper/lower
+  clamping holds the value fixed. In particular, at humidity 0 and temperature
+  at or below ideal + 0.001, valid algae values in [0.1, 1] remain unchanged;
+  values below 0.1 are still mapped to zero by the lower threshold. Spontaneous
+  generation can move a local state away from that deterministic equilibrium
+  whenever humidity is positive.
 - Floors move at multiplier 1 and move their temperature toward the radius-1
-  average by `(1 - humidity)`, then toward ideal temperature by 0.001 degrees.
+  average by `(1 - nextHumidity)`, then toward ideal by at most 0.001 degrees,
+  stopping exactly at ideal when the remaining difference is smaller.
 
 ### Water
 
@@ -214,17 +296,22 @@ humidity.
   temperature is above ideal it adds `0.1 * (temperature - ideal)` humidity;
   if below ideal it removes 0.1. Humidity is clamped to [0, 1].
 - Temperature becomes two-thirds its previous value plus one-third of the
-  radius-1 average, then moves 0.001 degrees toward ideal temperature.
+  radius-1 average, then moves at most 0.001 degrees toward ideal, stopping
+  exactly at ideal.
 
 ### Walls and border
 
 - Walls block movement. After shared humidity diffusion, wall temperature
   becomes five-sixths its previous value plus one-sixth of the radius-1 average,
-  then moves 0.001 degrees toward ideal. Wall humidity is set to zero.
+  then moves at most 0.001 degrees toward ideal, stopping exactly at ideal.
+  Wall humidity is set to zero.
 - Border cells override the wall temperature update and set it to
-  `temperatureRange / 2 * (1 - cos(2 * pi * hourOfDay / 24))`, giving 0°C at
-  midnight and 50°C at midday when the configured range is 0–50°C. For v1,
-  border humidity resets to zero each tick, matching ordinary walls.
+  `minimumTemperature + temperatureRange / 2 * (1 - cos(2 * pi * minuteOfDay / 1440))`,
+  giving the configured minimum at midnight, maximum at midday, and minimum at
+  the next midnight. The initial border temperature is set to the minimum so
+  the pre-first-tick state matches world time zero. The cycle is smooth at both
+  extrema; the advanced world timestamp is used each tick. For v1, border
+  humidity resets to zero each tick, matching ordinary walls.
 
 ## Oink organism as currently implemented
 
@@ -235,33 +322,63 @@ humidity.
   factor 0.5.
 - Behavior order is old-age death, thirst, hunger, separation, alignment,
   wandering, cohesion. The first behavior returning true stops evaluation.
+- Behavior priority is first-wins in that listed order; lower-priority rules
+  are not evaluated after one acts. If every behavior declines, the organism is
+  idle for decision display: `ActiveBehavior` is cleared, but its direction is
+  retained and it continues normal age, need, and movement updates. Idle does
+  not mean stationary unless the retained direction is zero.
+- A dead organism is excluded from living behavior evaluation. Its death
+  behavior may be displayed on the tick it acts; subsequent dead resolutions
+  clear `ActiveBehavior` and do not advance age, needs, or movement.
 - Thirst and hunger each activate probabilistically, with probability equal to
   the current need. Thirst seeks nearby water, or the most humid cell if no
   water is found, and reduces thirst by 0.1 when drinking.
-- Hunger seeks algae. Current code uses `eatSpeed = 0.1` and
-  `ALGAE_FOOD_FACTOR = 0.2`: when algae exceeds `eatSpeed`, it subtracts
-  `eatSpeed / ALGAE_FOOD_FACTOR` from algae and subtracts
-  `eatSpeed * ALGAE_FOOD_FACTOR` from hunger. Otherwise it subtracts the
-  remaining algae amount and reduces hunger by that amount times the factor.
-  The first branch can drive algae below zero when the patch is between 0.1 and
-  0.5; this is a known defect to correct before v1.
+- Hunger seeks algae. An eating intent requests `eatSpeed / ALGAE_FOOD_FACTOR`
+  algae, which is 0.5 with the v1 values `eatSpeed = 0.1` and
+  `ALGAE_FOOD_FACTOR = 0.2`. Resolution consumes the lesser of that request and
+  the floor's available algae, then reduces hunger by `consumedAlgae * factor`.
+  A partial patch therefore provides proportionally partial food, and algae
+  never becomes negative. Competing eating intents resolve in rotating stable
+  ID priority, each observing the remaining algae after earlier intents.
 - Need rises by metabolism times its multiplier, bounded to [0, 1]. Age and
-  needs advance by one tick's values. The organism then moves one normalized
-  direction vector scaled by the current cell's movement multiplier: one cell
-  per tick on floor and one-quarter cell per tick in water. A blocked destination
-  leaves it in place and reverses direction; entity occupancy does not block
-  movement.
-- Old-age death is checked once per simulated day after age 12 days. At each
-  check, death probability is `min(1, ageInDays / 12 - 1)`: it rises linearly
-  from zero just beyond the lifespan to certainty at 24 days.
+  needs advance by one tick's values. The organism then moves by
+  `normalizedDirection * currentCellSpeed`, where speed comes from the cell it
+  occupies at the start of movement: 1 cell per tick on floor, one-quarter cell
+  per tick in water, and zero on walls. Thus an organism entering water from
+  floor uses the floor distance for that tick and the water distance beginning
+  next tick. A zero direction leaves it in place. If the destination is blocked
+  by terrain or the world boundary, position is unchanged and direction is
+  reversed; entity occupancy does not block movement. Nonzero direction
+  assignments are normalized, and non-finite direction components are rejected.
+- Old-age mortality checks use the organism age at the start of the decision
+  phase and occur no more than once per simulated day. The age-12-day check has
+  probability zero; the first possible death is at the age-13-day check, with
+  probability 1/12. Probability then rises by 1/12 per daily check and is
+  clamped to 1 at age 24 days. The check uses `random < probability`, so zero
+  probability never kills and certainty always kills. Since age increments
+  after decisions, reaching an age boundary during a tick is observed by the
+  mortality behavior on the following tick.
 - Hunger and thirst do not directly cause death in v1; old age is the only
   mortality rule.
 - Reproduction code exists but is not attached to Oinks and currently returns
   before its gestation logic. **Version 1 has no births;** reproduction is
   deferred to a later rules version.
-- Cohesion currently divides the summed positions by an incorrectly incremented
-  count and steers away from the resulting center. This is a code defect, not an
-  agreed flocking rule.
+- Cohesion uses the circular sight-range snapshot, including the organism
+  itself, to calculate the arithmetic mean position. If the center differs
+  from the organism's position, it blends its current direction equally with
+  the normalized direction toward that center, then normalizes the result. If
+  the center is coincident or the blend cancels to zero, it does not act.
+  Because cohesion follows wandering in the first-wins behavior list, it acts
+  only when all earlier behaviors, including wandering, decline.
+- Organisms may overlap. A coincident organism has no defined separation
+  direction, so separation skips that neighbor and checks the remaining
+  neighbors. If all neighbors coincide, separation declines. Flocking,
+  wandering, and target-seeking decline when their direction vector cannot be
+  normalized; they do not write NaN directions. A zero direction is allowed
+  and leaves the organism stationary. Non-finite directions are rejected;
+  nonzero directions assigned to an organism are normalized. If the random
+  direction sampler returns its exact zero vector, it uses the fixed +X
+  direction as a finite fallback.
 
 ## Invariants for the experiment contract
 

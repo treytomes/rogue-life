@@ -10,7 +10,6 @@ namespace DungeonLife
     {
         private const int ALGAE_SEARCH_RADIUS = 1;
         private const float SPONTANEOUS_LIFE_CHANCE = 0.01f;
-        private const float HEAT_SINK_VALUE = 0.001f;
 
         /// <summary>
         /// If a cell is alive, it will slowly age.
@@ -75,20 +74,6 @@ namespace DungeonLife
         /// <returns>The amount of life to set to the cell's algae level.</returns>
         private float ConwayFrameRule(float cellValue, float regionValue, float humidity)
         {
-            // This gets small as the distance from ideal increases.
-            var tempDistance = 2 * (Temperature - WorldSettings.IdealTemperature);
-            if (tempDistance != 0)
-            {
-                tempDistance = 1.0f / tempDistance;
-            }
-            else
-            {
-                tempDistance = 1.0f;
-            }
-
-            // Now it gets larger as distance incrases.
-            tempDistance = 2.0f - tempDistance;
-
             var cellDelta = 0.0f;
             var isAlive = cellValue > 0.0f;
             var isDead = !isAlive;
@@ -122,11 +107,14 @@ namespace DungeonLife
             }
 
             var newValue = cellValue;
-            // Let's try only giving the algae a growth bonus if the area is humid.
-            // Cell deltas are reduced as temperature moves away from ideal.
-            // As the temperature difference approaches 1, the sine appoaches 0.  The perfectly ideal temperature will thereby freeze the state of the cell.
-            // The 0.9f factor is there to try and reduce the amount of affect temperature has on cell activity.
-            cellDelta *= (float)(1.0f - 0.8f * Math.Abs(Math.Sin(tempDistance)));
+            float temperatureSpan = Temperature < WorldSettings.IdealTemperature
+                ? WorldSettings.IdealTemperature - WorldSettings.MinimumTemperature
+                : WorldSettings.MaximumTemperature - WorldSettings.IdealTemperature;
+            float normalizedTemperatureDistance = temperatureSpan > 0
+                ? Math.Clamp(Math.Abs(Temperature - WorldSettings.IdealTemperature) / temperatureSpan, 0.0f, 1.0f)
+                : 0.0f;
+            float temperatureResponse = 1.0f - 0.8f * normalizedTemperatureDistance * normalizedTemperatureDistance;
+            cellDelta *= temperatureResponse;
 
             if (humidity < 0.01f)
             {
@@ -187,14 +175,7 @@ namespace DungeonLife
 
             float averageTemperature = snapshot.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
             float nextTemperature = Temperature + (1.0f - nextHumidity) * (averageTemperature - Temperature);
-            if (nextTemperature < WorldSettings.IdealTemperature)
-            {
-                nextTemperature += HEAT_SINK_VALUE;
-            }
-            else if (nextTemperature > WorldSettings.IdealTemperature)
-            {
-                nextTemperature -= HEAT_SINK_VALUE;
-            }
+            nextTemperature = WorldSettings.MoveTowardsIdealTemperature(nextTemperature);
 
             return new WorldCellNextState(nextTemperature, nextHumidity, nextAlgae);
         }

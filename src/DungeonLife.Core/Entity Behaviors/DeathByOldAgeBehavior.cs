@@ -39,8 +39,8 @@ namespace DungeonLife
                 return false;
             }
 
-            double deathProbability = self.Age.TotalDays / MaxLifeSpan.TotalDays - 1;
-            if (Random.NextDouble() > (1 - deathProbability))
+            double deathProbability = Math.Clamp(self.Age.TotalDays / MaxLifeSpan.TotalDays - 1.0, 0.0, 1.0);
+            if (Random.NextDouble() < deathProbability)
             {
                 intent = new EntityIntent(_entity, Dies: true);
                 return true;

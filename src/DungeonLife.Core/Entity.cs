@@ -9,7 +9,7 @@ namespace DungeonLife
     {
         #region Fields
 
-
+        private Vector2 _position;
         private Vector2 _movingDirection;
         private RgbColor _foregroundColor;
 
@@ -57,7 +57,7 @@ namespace DungeonLife
         /// <summary>Gets or sets the ActiveBehavior value.</summary>
         public EntityBehavior ActiveBehavior { get; private set; }
 
-        /// <summary>Documents this simulation API member.</summary>
+        /// <summary>Gets or sets the normalized movement direction; zero means stationary.</summary>
         public Vector2 MovingDirection
         {
             get
@@ -73,7 +73,19 @@ namespace DungeonLife
             }
             set
             {
-                _movingDirection = value;
+                if (!float.IsFinite(value.X) || !float.IsFinite(value.Y))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Movement direction components must be finite.");
+                }
+
+                if (value == Vector2.Zero)
+                {
+                    _movingDirection = Vector2.Zero;
+                    return;
+                }
+
+                double length = Math.Sqrt((double)value.X * value.X + (double)value.Y * value.Y);
+                _movingDirection = new Vector2((float)(value.X / length), (float)(value.Y / length));
             }
         }
 
@@ -82,7 +94,19 @@ namespace DungeonLife
         /// <summary>Gets or sets the Random value.</summary>
         public IRandom Random { get; internal set; }
         /// <summary>Gets or sets the Position value.</summary>
-        public Vector2 Position { get; set; }
+        public Vector2 Position
+        {
+            get => _position;
+            set
+            {
+                if (!float.IsFinite(value.X) || !float.IsFinite(value.Y))
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), "Entity position components must be finite.");
+                }
+
+                _position = value;
+            }
+        }
         /// <summary>Gets or sets the MaturityAge value.</summary>
         public TimeSpan MaturityAge { get; protected set; }
         /// <summary>Gets or sets the Age value.</summary>
@@ -179,7 +203,7 @@ namespace DungeonLife
         {
             Id = state.Id;
             Position = new Vector2(state.PositionX, state.PositionY);
-            _movingDirection = new Vector2(state.DirectionX, state.DirectionY);
+            MovingDirection = new Vector2(state.DirectionX, state.DirectionY);
             Age = TimeSpan.FromTicks(state.AgeTicks);
             MaturityAge = TimeSpan.FromTicks(state.MaturityAgeTicks);
             Hunger = state.Hunger;
@@ -284,12 +308,13 @@ namespace DungeonLife
 
         internal void Resolve(EntityIntent intent, IWorldState world, TimeSpan worldDelta)
         {
-            if (IsDead) return;
-
-            if (intent.SelectedBehavior != null)
+            if (IsDead)
             {
-                ActiveBehavior = intent.SelectedBehavior;
+                ActiveBehavior = null;
+                return;
             }
+
+            ActiveBehavior = intent.SelectedBehavior;
 
             if (intent.Dies)
             {
@@ -327,17 +352,10 @@ namespace DungeonLife
             switch (intent.Action)
             {
                 case EntityAction.Eat when target is FloorWorldCell floor && floor.AlgaeLevel > 0:
-                    if (floor.AlgaeLevel > intent.ActionAmount)
-                    {
-                        floor.AlgaeLevel -= intent.ActionAmount / intent.ActionFactor;
-                        Hunger -= intent.ActionAmount * intent.ActionFactor;
-                    }
-                    else
-                    {
-                        Hunger -= floor.AlgaeLevel * intent.ActionFactor;
-                        floor.AlgaeLevel = 0;
-                    }
-                    Hunger = Math.Max(0, Hunger);
+                    float requestedAlgae = intent.ActionAmount / intent.ActionFactor;
+                    float consumedAlgae = Math.Min(floor.AlgaeLevel, requestedAlgae);
+                    floor.AlgaeLevel -= consumedAlgae;
+                    Hunger = Math.Max(0, Hunger - consumedAlgae * intent.ActionFactor);
                     break;
                 case EntityAction.Drink when target is WaterSourceCell:
                     Thirst = Math.Max(0, Thirst - intent.ActionAmount);

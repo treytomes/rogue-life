@@ -36,14 +36,7 @@ namespace DungeonLife
 
             float averageTemperature = snapshot.GetRegionTemperature(Position, TEMPERATURE_SEARCH_RADIUS);
             float nextTemperature = (2 * Temperature + averageTemperature) / 3.0f;
-            if (nextTemperature > WorldSettings.IdealTemperature)
-            {
-                nextTemperature -= 0.001f;
-            }
-            else if (nextTemperature < WorldSettings.IdealTemperature)
-            {
-                nextTemperature += 0.001f;
-            }
+            nextTemperature = WorldSettings.MoveTowardsIdealTemperature(nextTemperature);
 
             return new WorldCellNextState(nextTemperature, nextHumidity, 0);
         }

@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace DungeonLife
 {
-    [DisplayName("Cohesing")]
+    [DisplayName("Cohesion")]
     class EntityCohesionBehavior : EntityBehavior
     {
         private const int MAINTENANCE_BIAS = 1;
@@ -16,8 +16,7 @@ namespace DungeonLife
             EntityStateSnapshot[] entities = context.World
                 .InArea(context.Self.Position, context.Self.RangeOfSight, context.Self.EntityType)
                 .ToArray();
-            int count = entities.Length;
-            if (count <= 1)
+            if (entities.Length <= 1)
             {
                 intent = EntityIntent.None(_entity);
                 return false;
@@ -27,24 +26,28 @@ namespace DungeonLife
             foreach (EntityStateSnapshot entity in entities)
             {
                 center += entity.Position;
-                count++;
             }
-            center /= count;
+            center /= entities.Length;
             if (center == context.Self.Position)
             {
                 intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            Vector2 delta = context.Self.Position - center;
-            if (delta == Vector2.Zero)
+            Vector2 delta = center - context.Self.Position;
+            if (!TryNormalize(delta, out delta))
             {
                 intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            delta = Vector2.Normalize(delta);
-            Vector2 direction = (context.Self.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1);
+            Vector2 blendedDirection = (context.Self.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1);
+            if (!TryNormalize(blendedDirection, out Vector2 direction))
+            {
+                intent = EntityIntent.None(_entity);
+                return false;
+            }
+
             intent = new EntityIntent(_entity, MovingDirection: direction);
             return true;
         }

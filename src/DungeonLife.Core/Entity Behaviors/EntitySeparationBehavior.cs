@@ -32,14 +32,13 @@ namespace DungeonLife
                 float distanceSquared = delta.LengthSquared();
                 if (distanceSquared <= _separationAmountSquared)
                 {
-                    if (distanceSquared == 0)
-                    {
-                        intent = EntityIntent.None(_entity);
-                        return false;
-                    }
+                    if (distanceSquared == 0) continue;
 
-                    delta = Vector2.Normalize(delta);
-                    Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1));
+                    if (!TryNormalize(delta, out delta)) continue;
+
+                    Vector2 blendedDirection = (context.Self.MovingDirection * MAINTENANCE_BIAS + delta) / (MAINTENANCE_BIAS + 1);
+                    if (!TryNormalize(blendedDirection, out Vector2 direction)) continue;
+
                     intent = new EntityIntent(_entity, MovingDirection: direction);
                     return true;
                 }

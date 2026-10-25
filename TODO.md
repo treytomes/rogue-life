@@ -92,34 +92,49 @@ explain why it changed.
 ## Phase 2: Validate existing rules
 
 - [x] Configure every `.csproj` to require documentation, and to treat warnings as errors, then build and fix the errors you find.
-- [ ] Fix neighborhood averages at world edges. `AverageOver` currently divides
-  by the full square area even when `IterateOver` clips the sample to the map.
-- [ ] Implement and validate the specified cell-neighborhood geometry and edge
+- [x] Fix neighborhood averages at world edges. `AverageOver` now divides by
+  the number of cells yielded by the in-bounds clipped neighborhood.
+- [x] Implement and validate the specified cell-neighborhood geometry and edge
   normalization: square in-bounds cell neighborhoods including the center,
-  circular Euclidean entity sensing, and actual in-bounds sample counts.
-- [ ] Review and document the algae growth/death equation, including its
+  circular Euclidean entity sensing and cell-target sensing, and actual
+  in-bounds sample counts.
+- [x] Review and document the algae growth/death equation, including its
   temperature response, humidity scaling, spontaneous generation probability,
-  and aging. Add boundary cases for minimum/maximum inputs and equilibrium
-  behavior.
-- [ ] Review the heat and humidity update equations as a coupled system. Define
+  and aging. Added boundary cases for minimum/maximum inputs and equilibrium
+  behavior to `MODEL_SPEC.md`, including the smooth bounded temperature response.
+- [x] Review the heat and humidity update equations as a coupled system. Define
   expected sources, sinks, diffusion rates, and stable ranges; verify that update
-  order does not bias the result.
-- [ ] Correct and validate flocking rules. `EntityCohesionBehavior` increments
-  its count while summing positions and steers away from its computed center.
-- [ ] Handle coincident entities and zero movement vectors without producing
-  invalid floating-point positions or directions.
-- [ ] Validate implementation of movement using normalized direction and the
+  order does not bias the result. See the coupled-system audit in `MODEL_SPEC.md`.
+- [x] Correct and validate flocking rules. Cohesion now averages its snapshot
+  positions correctly and steers toward the center with a normalized direction;
+  the rule and its behavior priority are documented in `MODEL_SPEC.md`.
+- [x] Handle coincident entities and zero movement vectors without producing
+  invalid floating-point positions or directions. Zero/cancelling vectors now
+  decline safely, overlapping neighbors are skipped for separation, and
+  direction assignment rejects non-finite components.
+- [x] Validate implementation of movement using normalized direction and the
   agreed terrain multipliers: 1 cell per tick on floor and 0.25 in water.
-- [ ] Validate target selection for food and water against the agreed scoring
-  formula, sensing geometry, and tie-break in `MODEL_SPEC.md`.
-- [ ] Define behavior priority and idle behavior. Ensure the displayed active
-  state is cleared when no behavior acts and dead entities stop running living
-  behaviors.
-- [ ] Review time-dependent rules for boundary/discontinuity errors, including
-  the border heat cycle and lifespan checks.
+  The current-cell timing, stationary zero direction, and blocked-destination
+  reversal are recorded in `MODEL_SPEC.md`.
+- [x] Validate target selection for food and water against the agreed scoring
+  formula, sensing geometry, and tie-break in `MODEL_SPEC.md`. Candidates now
+  require positive resource, use `amount / (1 + distanceSquared)` within the
+  circular range, and break equal scores by ascending X/Y.
+- [x] Define behavior priority and idle behavior. The displayed active state
+  clears when no behavior acts or when a dead entity is resolved; dead entities
+  do not run living behaviors. Priority and momentum-preserving idle behavior
+  are documented in `MODEL_SPEC.md`.
+- [x] Review time-dependent rules for boundary/discontinuity errors, including
+  the border heat cycle and lifespan checks. Initial border heat now matches
+  world time zero, and mortality probabilities 0 and 1 are exact; boundary
+  timing is documented in `MODEL_SPEC.md`.
+- [x] Review the identified v1 model findings and record the agreed corrections
+  in `MODEL_SPEC.md`: bounded partial algae consumption, a smooth bounded algae
+  temperature response, and exact convergence to ideal temperature.
 
 ## Phase 3: Complete organism and population dynamics
 
+- [ ] 
 - [ ] Implement reproduction in a later rules version. Specify mating,
   eligibility, gestation, cooldown, offspring placement, and population limits
   before enabling the existing unfinished `ReproductionBehavior`.
@@ -166,11 +181,14 @@ explain why it changed.
 
 - [ ] Future runtime-created entities need component RNG streams keyed from their
   stable IDs, as their IDs are assigned when added to the collection.
-- [ ] Entity reproduction is unfinished and not enabled; current populations
-  cannot replace deaths.
-- [ ] The cohesion rule's implementation contradicts its intended name.
-- [ ] Edge-region averages use a denominator larger than the number of sampled
-  cells.
+- [x] Bound eating by available algae while preserving partial consumption;
+  hunger reduction is proportional to the amount consumed.
+- [x] Replace the unbounded algae temperature response with a smooth bounded
+  quadratic response, with value 1 at ideal and 0.2 at either temperature bound.
+- [x] Clamp the environmental temperature adjustment to ideal when within
+  0.001 degrees, preventing overshoot and oscillation.
+- [ ] Entity reproduction remains unfinished and disabled in v1; population
+  replacement, eligibility, and mating rules belong to a later version.
 - [ ] UI cadence currently advances world time by one minute per timer tick;
   experiments need an explicit, independently controlled tick duration.
 

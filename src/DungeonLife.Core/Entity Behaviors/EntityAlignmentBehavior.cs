@@ -25,14 +25,19 @@ namespace DungeonLife
             Vector2 averageDirection = Vector2.Zero;
             foreach (EntityStateSnapshot entity in entities) averageDirection += entity.MovingDirection;
             averageDirection /= entities.Length;
-            if (averageDirection == Vector2.Zero)
+            if (!TryNormalize(averageDirection, out averageDirection))
             {
                 intent = EntityIntent.None(_entity);
                 return false;
             }
 
-            averageDirection = Vector2.Normalize(averageDirection);
-            Vector2 direction = Vector2.Normalize((context.Self.MovingDirection * MAINTENANCE_BIAS + averageDirection) / (MAINTENANCE_BIAS + 1));
+            Vector2 blendedDirection = (context.Self.MovingDirection * MAINTENANCE_BIAS + averageDirection) / (MAINTENANCE_BIAS + 1);
+            if (!TryNormalize(blendedDirection, out Vector2 direction))
+            {
+                intent = EntityIntent.None(_entity);
+                return false;
+            }
+
             intent = new EntityIntent(_entity, MovingDirection: direction);
             return true;
         }
