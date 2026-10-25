@@ -134,7 +134,7 @@ explain why it changed.
 
 ## Phase 3: Complete organism and population dynamics
 
-- [ ] 
+- [ ] Review feasibility of using NRules for managing organism behavior.
 - [ ] Implement reproduction in a later rules version. Specify mating,
   eligibility, gestation, cooldown, offspring placement, and population limits
   before enabling the existing unfinished `ReproductionBehavior`.
