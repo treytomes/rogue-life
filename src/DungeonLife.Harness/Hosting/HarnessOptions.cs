@@ -6,7 +6,8 @@ internal sealed record HarnessOptions(
     string? Generator,
     string? ConfigPath,
     string? LogLevel,
-    bool VerifyReplay);
+    bool VerifyReplay,
+    bool VerifySaveLoad);
 
 internal enum SeedSource
 {
@@ -23,5 +24,6 @@ internal sealed record HarnessStartupSettings(
     string Generator,
     string LogLevel,
     string? ConfigurationFile,
-    bool VerifyReplay);
+    bool VerifyReplay,
+    bool VerifySaveLoad);
 

@@ -152,6 +152,56 @@ namespace DungeonLife
 
         public bool IsDead { get; set; } = false;
 
+        internal void RestoreSavedState(EntitySavedState state)
+        {
+            Id = state.Id;
+            Position = new Vector2(state.PositionX, state.PositionY);
+            _movingDirection = new Vector2(state.DirectionX, state.DirectionY);
+            Age = TimeSpan.FromTicks(state.AgeTicks);
+            MaturityAge = TimeSpan.FromTicks(state.MaturityAgeTicks);
+            Hunger = state.Hunger;
+            Thirst = state.Thirst;
+            IsDead = state.IsDead;
+            Metabolism = state.Metabolism;
+            BasePerception = state.BasePerception;
+            BaseSpeed = state.BaseSpeed;
+            HungerMultiplier = state.HungerMultiplier;
+            ThirstMultiplier = state.ThirstMultiplier;
+            RangeOfSightMultiplier = state.RangeOfSightMultiplier;
+            RangeOfSmellMultiplier = state.RangeOfSmellMultiplier;
+            if (Random is not Pcg32Random random)
+                throw new InvalidOperationException("Saved state requires PCG32 entity streams.");
+            random.RestoreState(state.RandomState);
+            foreach (EntityBehavior behavior in Behaviors)
+            {
+                if (behavior is DeathByOldAgeBehavior death)
+                    death.LastDeathCheck = TimeSpan.FromTicks(state.LastDeathCheckTicks);
+            }
+            ActiveBehavior = state.ActiveBehaviorIndex >= 0 && state.ActiveBehaviorIndex < Behaviors.Count
+                ? Behaviors[state.ActiveBehaviorIndex]
+                : null;
+        }
+
+        internal EntitySavedState CaptureSavedState()
+        {
+            if (Random is not Pcg32Random random)
+                throw new InvalidOperationException("Saved state requires PCG32 entity streams.");
+            long lastDeathCheckTicks = 0;
+            int activeBehaviorIndex = Behaviors.IndexOf(ActiveBehavior);
+            foreach (EntityBehavior behavior in Behaviors)
+                if (behavior is DeathByOldAgeBehavior death)
+                {
+                    lastDeathCheckTicks = death.LastDeathCheck.Ticks;
+                    break;
+                }
+            return new EntitySavedState(Id, GetType().FullName ?? GetType().Name,
+                Position.X, Position.Y, _movingDirection.X, _movingDirection.Y,
+                Age.Ticks, MaturityAge.Ticks, (int)Gender, Hunger, Thirst, IsDead,
+                Metabolism, BasePerception, BaseSpeed, HungerMultiplier, ThirstMultiplier,
+                RangeOfSightMultiplier, RangeOfSmellMultiplier, random.CaptureState(),
+                lastDeathCheckTicks, activeBehaviorIndex);
+        }
+
         public int Glyph
         {
             get

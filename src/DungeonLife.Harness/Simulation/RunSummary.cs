@@ -17,6 +17,7 @@ internal sealed record RunSummary(
     int LivingEntityCount,
     string StateHash,
     bool? ReplayMatched,
+    bool? SaveLoadMatched,
     long[] EntityIds,
     long[] FirstTickPriorityIds,
     long[] SecondTickPriorityIds);

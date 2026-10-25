@@ -44,6 +44,26 @@ namespace DungeonLife
         public float Temperature { get; set; } = WorldSettings.IdealTemperature;
         public float Humidity { get; set; }
 
+        internal void RestoreSavedState(SavedCellState state)
+        {
+            Temperature = state.Temperature;
+            Humidity = state.Humidity;
+            MovementSpeedMultiplier = state.MovementSpeedMultiplier;
+            if (this is FloorWorldCell floor) floor.AlgaeLevel = state.AlgaeLevel;
+            if (Random is not Pcg32Random random)
+                throw new InvalidOperationException("Saved state requires PCG32 cell streams.");
+            random.RestoreState(state.RandomState);
+        }
+
+        internal SavedCellState CaptureSavedState()
+        {
+            if (Random is not Pcg32Random random)
+                throw new InvalidOperationException("Saved state requires PCG32 cell streams.");
+            return new SavedCellState(GetType().FullName ?? GetType().Name, Temperature, Humidity,
+                MovementSpeedMultiplier, this is FloorWorldCell floor ? floor.AlgaeLevel : 0,
+                random.CaptureState());
+        }
+
         public virtual RgbColor BackgroundColor
         {
             get

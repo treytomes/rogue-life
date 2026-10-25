@@ -16,6 +16,12 @@ namespace DungeonLife
 
         public TimeSpan MaxLifeSpan { get; }
 
+        internal TimeSpan LastDeathCheck
+        {
+            get => _lastDeathCheck;
+            set => _lastDeathCheck = value;
+        }
+
         internal override bool TryDecide(EntityDecisionContext context, out EntityIntent intent)
         {
             EntityStateSnapshot self = context.Self;

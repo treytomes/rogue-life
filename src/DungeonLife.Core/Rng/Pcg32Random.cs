@@ -71,6 +71,26 @@ public sealed class Pcg32Random : IRandom
         Reseed(seed, sequence);
     }
 
+    /// <summary>Captures every mutable value needed to resume this exact random stream.</summary>
+    public Pcg32RandomState CaptureState() => new(
+        _seed, _sequence, _state, _increment, _spareGaussian, _hasSpareGaussian);
+
+    /// <summary>Restores a previously captured stream state.</summary>
+    public void RestoreState(Pcg32RandomState state)
+    {
+        if ((state.Increment & 1UL) == 0)
+        {
+            throw new ArgumentException("PCG increment must be odd.", nameof(state));
+        }
+
+        _seed = state.Seed;
+        _sequence = state.Sequence;
+        _state = state.State;
+        _increment = state.Increment;
+        _spareGaussian = state.SpareGaussian;
+        _hasSpareGaussian = state.HasSpareGaussian;
+    }
+
     #endregion
 
     #region Methods

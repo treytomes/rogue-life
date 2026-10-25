@@ -46,13 +46,48 @@ internal sealed class SimulationRunner(
             }
         }
 
-        RunSummary summary = CreateSummary(stateHash, replayMatched);
+        bool? saveLoadMatched = null;
+        if (settings.VerifySaveLoad)
+        {
+            WorldGenerator checkpointGenerator = settings.Generator switch
+            {
+                "cavern" => new CavernGenerator(),
+                "spacious" => new SpaciousCavernGenerator(),
+                _ => throw new InvalidOperationException($"Unsupported world generator '{settings.Generator}'."),
+            };
+            var checkpointRun = new WorldSimulation(
+                checkpointGenerator, new Pcg32Random(settings.Seed!.Value), settings.Seed.Value);
+            int checkpointTick = settings.Ticks / 2;
+            for (int i = 0; i < checkpointTick; i++) checkpointRun.Tick();
+
+            string temporarySavePath = Path.Combine(Path.GetTempPath(), $"dungeonlife-{Guid.NewGuid():N}.dlsave.json");
+            try
+            {
+                SimulationStateFile.SaveAsync(temporarySavePath, checkpointRun.CaptureState(settings.Generator))
+                    .GetAwaiter().GetResult();
+                SimulationSaveState savedState = SimulationStateFile.LoadAsync(temporarySavePath)
+                    .GetAwaiter().GetResult();
+                WorldSimulation continuedRun = WorldSimulation.FromSavedState(savedState);
+                for (int i = checkpointTick; i < settings.Ticks; i++) continuedRun.Tick();
+                string continuedHash = SimulationStateHasher.Compute(continuedRun, settings);
+                saveLoadMatched = CryptographicOperations.FixedTimeEquals(
+                    Convert.FromHexString(stateHash), Convert.FromHexString(continuedHash));
+                if (saveLoadMatched != true)
+                    throw new InvalidOperationException($"Save/load continuation hash mismatch: {stateHash} != {continuedHash}");
+            }
+            finally
+            {
+                if (File.Exists(temporarySavePath)) File.Delete(temporarySavePath);
+            }
+        }
+
+        RunSummary summary = CreateSummary(stateHash, replayMatched, saveLoadMatched);
         Console.Out.WriteLine(JsonSerializer.Serialize(summary, new JsonSerializerOptions { WriteIndented = true }));
         logger.LogInformation("Headless simulation completed after {Ticks} ticks", simulation.TickCount);
         return 0;
     }
 
-    private RunSummary CreateSummary(string stateHash, bool? replayMatched)
+    private RunSummary CreateSummary(string stateHash, bool? replayMatched, bool? saveLoadMatched)
     {
         int cellCount = 0;
         int floorCellCount = 0;
@@ -122,6 +157,7 @@ internal sealed class SimulationRunner(
             livingEntityCount,
             stateHash,
             replayMatched,
+            saveLoadMatched,
             entityIds,
             firstTickPriorityIds,
             secondTickPriorityIds);

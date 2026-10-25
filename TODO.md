@@ -85,7 +85,7 @@ explain why it changed.
   mutation of neighboring cells and entities.
 - [x] Add a replay check: the same model version, seed, parameters, and tick count
   must produce the same state hash, including when rendering is disabled.
-- [ ] Add a saved-state format with model version, seed/RNG state, tick number,
+- [x] Add a saved-state format with model version, seed/RNG state, tick number,
   world clock, cell state, and entity state; verify save/load continuation against
   an uninterrupted run.
 

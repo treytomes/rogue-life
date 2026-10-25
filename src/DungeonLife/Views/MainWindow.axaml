@@ -16,6 +16,8 @@
       <Button Content="Run" Command="{Binding RunCommand}" Width="60" />
       <Button Content="Pause" Command="{Binding PauseCommand}" Width="70" />
       <Button Content="Step" Command="{Binding StepCommand}" Width="60" />
+      <Button Content="Save" Click="OnSaveClick" Width="60" />
+      <Button Content="Load" Click="OnLoadClick" Width="60" />
       <TextBlock Text="{Binding TimeText}"
                  VerticalAlignment="Center"
                  Margin="12,0,0,0" />

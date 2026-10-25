@@ -7,6 +7,7 @@ using Prism.Mvvm;
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace DungeonLife.ViewModels
 {
@@ -77,7 +78,9 @@ namespace DungeonLife.ViewModels
 
         #region Properties
 
-        internal WorldSimulation Simulation { get; }
+        internal WorldSimulation Simulation { get; private set; }
+
+        public event EventHandler SimulationReplaced;
 
         public DelegateCommand RunCommand { get; }
         public DelegateCommand PauseCommand { get; }
@@ -237,6 +240,26 @@ namespace DungeonLife.ViewModels
             _timer.Tick -= OnTimerTick;
         }
 
+        public async Task SaveSimulationAsync(string path)
+        {
+            Pause();
+            await SimulationStateFile.SaveAsync(path, Simulation.CaptureState("cavern"));
+        }
+
+        public async Task LoadSimulationAsync(string path)
+        {
+            Pause();
+            SimulationSaveState state = await SimulationStateFile.LoadAsync(path);
+            Simulation = WorldSimulation.FromSavedState(state);
+            Simulation.IsRunning = false;
+            _selectedCell = null;
+            _selectedEntity = null;
+            TimeText = FormatTime(Simulation.WorldTime);
+            RefreshDetails();
+            SimulationReplaced?.Invoke(this, EventArgs.Empty);
+            WorldUpdated?.Invoke(this, EventArgs.Empty);
+        }
+
         private void Run()
         {
             if (IsRunning)
@@ -250,12 +273,9 @@ namespace DungeonLife.ViewModels
 
         private void Pause()
         {
-            if (!IsRunning)
-            {
-                return;
-            }
-
             Simulation.IsRunning = false;
+            Simulation.IsStepping = false;
+            _isStepping = false;
             IsRunning = false;
         }
 

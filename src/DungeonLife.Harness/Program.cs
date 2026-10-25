@@ -34,6 +34,10 @@ internal static class Program
         {
             Description = "Run the same seeded scenario a second time and require an identical state hash.",
         };
+        Option<bool> verifySaveLoadOption = new("--verify-save-load")
+        {
+            Description = "Verify that a saved and restored checkpoint continues to the same final state.",
+        };
 
         RootCommand root = new("Headless DungeonLife simulation runner.")
         {
@@ -43,6 +47,7 @@ internal static class Program
             configOption,
             logLevelOption,
             verifyReplayOption,
+            verifySaveLoadOption,
         };
 
         root.SetAction(parseResult =>
@@ -53,7 +58,8 @@ internal static class Program
                 parseResult.GetValue(generatorOption),
                 parseResult.GetValue(configOption),
                 parseResult.GetValue(logLevelOption),
-                parseResult.GetValue(verifyReplayOption));
+                parseResult.GetValue(verifyReplayOption),
+                parseResult.GetValue(verifySaveLoadOption));
 
             using IHost host = HarnessHostBuilder.Build(options);
             host.Start();
