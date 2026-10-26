@@ -7,7 +7,10 @@ namespace DungeonLife
     class EntityWanderBehavior : EntityBehavior
     {
         private const int MAINTENANCE_BIAS = 1;
-        private readonly float _changeDirectionChance;
+        private float _changeDirectionChance;
+
+        internal float ChangeDirectionChance => _changeDirectionChance;
+        internal void RestoreChangeDirectionChance(float value) => _changeDirectionChance = value;
 
         public EntityWanderBehavior(Entity entity) : base(entity)
         {

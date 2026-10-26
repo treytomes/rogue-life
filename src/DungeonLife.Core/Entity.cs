@@ -199,6 +199,14 @@ namespace DungeonLife
         /// <summary>Gets or sets the IsDead value.</summary>
         public bool IsDead { get; set; } = false;
 
+        /// <summary>Gets whether this entity currently carries a pregnancy.</summary>
+        public bool IsPregnant => PregnancyDueWorldTimeTicks > 0;
+
+        internal long PregnancyDueWorldTimeTicks { get; set; }
+        internal long NextBirthAttemptWorldTimeTicks { get; set; }
+        internal long ReproductionCooldownUntilWorldTimeTicks { get; set; }
+        internal long LastMatingWorldDay { get; set; } = -1;
+
         internal void RestoreSavedState(EntitySavedState state)
         {
             Id = state.Id;
@@ -209,6 +217,10 @@ namespace DungeonLife
             Hunger = state.Hunger;
             Thirst = state.Thirst;
             IsDead = state.IsDead;
+            PregnancyDueWorldTimeTicks = state.PregnancyDueWorldTimeTicks;
+            NextBirthAttemptWorldTimeTicks = state.NextBirthAttemptWorldTimeTicks;
+            ReproductionCooldownUntilWorldTimeTicks = state.ReproductionCooldownUntilWorldTimeTicks;
+            LastMatingWorldDay = state.LastMatingWorldDay;
             Metabolism = state.Metabolism;
             BasePerception = state.BasePerception;
             BaseSpeed = state.BaseSpeed;
@@ -223,6 +235,8 @@ namespace DungeonLife
             {
                 if (behavior is DeathByOldAgeBehavior death)
                     death.LastDeathCheck = TimeSpan.FromTicks(state.LastDeathCheckTicks);
+                if (behavior is EntityWanderBehavior wander)
+                    wander.RestoreChangeDirectionChance(state.WanderChangeDirectionChance);
             }
             ActiveBehavior = state.ActiveBehaviorIndex >= 0 && state.ActiveBehaviorIndex < Behaviors.Count
                 ? Behaviors[state.ActiveBehaviorIndex]
@@ -235,18 +249,24 @@ namespace DungeonLife
                 throw new InvalidOperationException("Saved state requires PCG32 entity streams.");
             long lastDeathCheckTicks = 0;
             int activeBehaviorIndex = Behaviors.IndexOf(ActiveBehavior);
+            float wanderChangeDirectionChance = 0;
             foreach (EntityBehavior behavior in Behaviors)
+            {
                 if (behavior is DeathByOldAgeBehavior death)
                 {
                     lastDeathCheckTicks = death.LastDeathCheck.Ticks;
-                    break;
                 }
+                if (behavior is EntityWanderBehavior wander)
+                    wanderChangeDirectionChance = wander.ChangeDirectionChance;
+            }
             return new EntitySavedState(Id, GetType().FullName ?? GetType().Name,
                 Position.X, Position.Y, _movingDirection.X, _movingDirection.Y,
                 Age.Ticks, MaturityAge.Ticks, (int)Gender, Hunger, Thirst, IsDead,
                 Metabolism, BasePerception, BaseSpeed, HungerMultiplier, ThirstMultiplier,
                 RangeOfSightMultiplier, RangeOfSmellMultiplier, random.CaptureState(),
-                lastDeathCheckTicks, activeBehaviorIndex);
+                lastDeathCheckTicks, activeBehaviorIndex, PregnancyDueWorldTimeTicks,
+                NextBirthAttemptWorldTimeTicks, ReproductionCooldownUntilWorldTimeTicks,
+                LastMatingWorldDay, wanderChangeDirectionChance);
         }
 
         /// <summary>Documents this simulation API member.</summary>

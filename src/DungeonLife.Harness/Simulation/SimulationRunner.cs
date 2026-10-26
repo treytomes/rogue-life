@@ -160,7 +160,8 @@ internal sealed class SimulationRunner(
             saveLoadMatched,
             entityIds,
             firstTickPriorityIds,
-            secondTickPriorityIds);
+            secondTickPriorityIds,
+            simulation.ReproductionEvents);
     }
 }
 

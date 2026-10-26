@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -60,6 +61,8 @@ namespace DungeonLife
         public ulong RunSeed { get; }
         /// <summary>Gets the Entities value.</summary>
         public EntityCollection Entities { get; }
+        /// <summary>Gets cumulative reproduction event counts for this run.</summary>
+        public ReproductionEventState ReproductionEvents { get; private set; } = new(0, 0, 0, 0, 0);
         /// <summary>Gets or sets the IsRunning value.</summary>
         public bool IsRunning { get; set; } = true;
         /// <summary>Gets or sets the IsStepping value.</summary>
@@ -92,7 +95,9 @@ namespace DungeonLife
 
             return new SimulationSaveState(WorldSettings.RulesVersion, generator, RunSeed,
                 Cells.Width, Cells.Height, TickCount, WorldTime.Ticks, AnimationTime.Ticks,
-                runRandom.CaptureState(), cells, Entities.Select(entity => entity.CaptureSavedState()).ToArray());
+                runRandom.CaptureState(), cells,
+                Entities.OrderBy(entity => entity.Id).Select(entity => entity.CaptureSavedState()).ToArray(),
+                ReproductionEvents);
         }
 
         /// <summary>RestoreState simulation state.</summary>
@@ -104,17 +109,16 @@ namespace DungeonLife
             if (state.Generator != generator || state.RunSeed != RunSeed
                 || state.WorldWidth != Cells.Width || state.WorldHeight != Cells.Height)
                 throw new InvalidDataException("Save configuration does not match this simulation's generator, seed, or world dimensions.");
-            if (state.Cells.Length != Cells.Width * Cells.Height || state.Entities.Length != Entities.Count())
-                throw new InvalidDataException("Save topology does not match the generated world.");
+            if (state.Cells.Length != Cells.Width * Cells.Height || state.ReproductionEvents == null)
+                throw new InvalidDataException("Save topology or reproduction state is invalid.");
 
-            Entity[] entities = Entities.ToArray();
-            int entityIndex = 0;
-            foreach (Entity entity in entities)
+            EntitySavedState[] savedEntities = state.Entities.OrderBy(entity => entity.Id).ToArray();
+            for (int index = 0; index < savedEntities.Length; index++)
             {
-                EntitySavedState saved = state.Entities[entityIndex++];
-                if (saved.Id != entity.Id || saved.Type != (entity.GetType().FullName ?? entity.GetType().Name)
-                    || saved.Gender != (int)entity.Gender)
-                    throw new InvalidDataException("Saved entity identity or type does not match the generated world.");
+                EntitySavedState saved = savedEntities[index];
+                if (saved.Id != index + 1 || saved.Type != (typeof(OinkEntity).FullName ?? nameof(OinkEntity))
+                    || !Enum.IsDefined(typeof(Gender), saved.Gender))
+                    throw new InvalidDataException("Saved entity IDs, type, or gender are invalid.");
             }
             for (int x = 0; x < Cells.Width; x++)
             for (int y = 0; y < Cells.Height; y++)
@@ -133,8 +137,14 @@ namespace DungeonLife
             for (int y = 0; y < Cells.Height; y++)
                 if (Cells[x, y] is WorldCell cell)
                     cell.RestoreSavedState(state.Cells[x * Cells.Height + y]!);
-            for (int index = 0; index < entities.Length; index++)
-                entities[index].RestoreSavedState(state.Entities[index]);
+            Entities.ClearForRestore();
+            foreach (EntitySavedState saved in savedEntities)
+            {
+                var entity = new OinkEntity(0, 0, CreateEntityRandom(RunSeed, saved.Id), (Gender)saved.Gender);
+                Entities.Add(entity);
+                entity.RestoreSavedState(saved);
+            }
+            ReproductionEvents = state.ReproductionEvents;
             TickCount = state.TickCount;
             WorldTime = TimeSpan.FromTicks(state.WorldTimeTicks);
             AnimationTime = TimeSpan.FromTicks(state.AnimationTimeTicks);
@@ -181,6 +191,9 @@ namespace DungeonLife
             return new Pcg32Random(componentSeed, sequence);
         }
 
+        internal static IRandom CreateEntityRandom(ulong seed, long id) =>
+            CreateComponentRandom(seed, 0x454E5449UL, (ulong)id);
+
         private static ulong Mix(ulong value)
         {
             value += 0x9E3779B97F4A7C15UL;
@@ -211,6 +224,7 @@ namespace DungeonLife
                 }
             });
             Cells.Commit(nextCellStates);
+            Entity[] entitiesAtTickStart = Entities.ToArray();
             Entity[] priorityOrder = Entities.InPriorityOrder(TickCount - 1).ToArray();
             var entitySnapshot = new EntityDecisionSnapshot(Cells.CaptureSnapshot(), Entities);
             EntityIntent[] intents = new EntityIntent[priorityOrder.Length];
@@ -226,7 +240,154 @@ namespace DungeonLife
                 intent.Entity.Resolve(intent, this, WorldDelta);
             }
 
+            ResolveReproduction(entitiesAtTickStart);
+
             LastTickDuration = Stopwatch.GetElapsedTime(start);
+        }
+
+        private void ResolveReproduction(Entity[] entitiesAtTickStart)
+        {
+            long currentWorldDay = WorldTime.Ticks / ReproductionRules.Day.Ticks;
+            OinkEntity[] oinks = entitiesAtTickStart.OfType<OinkEntity>().ToArray();
+
+            // Gestations and due births resolve after all entities present at tick start.
+            foreach (OinkEntity female in oinks.Where(entity => entity.Gender == Gender.Female))
+            {
+                if (!female.IsPregnant)
+                    continue;
+
+                if (female.IsDead)
+                {
+                    female.PregnancyDueWorldTimeTicks = 0;
+                    female.NextBirthAttemptWorldTimeTicks = 0;
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        PregnancyLosses = ReproductionEvents.PregnancyLosses + 1,
+                    };
+                    continue;
+                }
+
+                if (WorldTime.Ticks < female.NextBirthAttemptWorldTimeTicks)
+                    continue;
+
+                Vector2? birthPosition = FindBirthPosition(female.Position);
+                if (birthPosition is not Vector2 position)
+                {
+                    female.NextBirthAttemptWorldTimeTicks = WorldTime.Add(ReproductionRules.Day).Ticks;
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        DeferredBirthAttempts = ReproductionEvents.DeferredBirthAttempts + 1,
+                    };
+                    continue;
+                }
+
+                var newborn = new OinkEntity((int)position.X, (int)position.Y,
+                    CreateEntityRandom(RunSeed, Entities.NextId));
+                Entities.Add(newborn);
+                female.PregnancyDueWorldTimeTicks = 0;
+                female.NextBirthAttemptWorldTimeTicks = 0;
+                female.ReproductionCooldownUntilWorldTimeTicks =
+                    WorldTime.Add(ReproductionRules.PostBirthCooldown).Ticks;
+                ReproductionEvents = ReproductionEvents with { Births = ReproductionEvents.Births + 1 };
+            }
+
+            var pairedMaleIds = new HashSet<long>(oinks
+                .Where(entity => entity.LastMatingWorldDay == currentWorldDay)
+                .Select(entity => entity.Id));
+            IEnumerable<OinkEntity> femalePriority = Entities
+                .InPriorityOrder(TickCount - 1)
+                .OfType<OinkEntity>()
+                .Where(entity => entity.Gender == Gender.Female && oinks.Contains(entity));
+
+            foreach (OinkEntity female in femalePriority)
+            {
+                if (!IsEligible(female) || female.IsPregnant
+                    || WorldTime.Ticks < female.ReproductionCooldownUntilWorldTimeTicks
+                    || !IsDailyAttempt(female))
+                    continue;
+
+                OinkEntity male = oinks
+                    .Where(candidate => candidate.Gender == Gender.Male
+                        && IsEligible(candidate)
+                        && !pairedMaleIds.Contains(candidate.Id)
+                        && DistanceSquared(candidate.Position, female.Position)
+                            <= ReproductionRules.MatingRadius * ReproductionRules.MatingRadius)
+                    .OrderBy(candidate => DistanceSquared(candidate.Position, female.Position))
+                    .ThenBy(candidate => candidate.Id)
+                    .FirstOrDefault();
+                if (male == null)
+                    continue;
+
+                female.LastMatingWorldDay = currentWorldDay;
+                male.LastMatingWorldDay = currentWorldDay;
+                pairedMaleIds.Add(male.Id);
+                ReproductionEvents = ReproductionEvents with
+                {
+                    ConceptionAttempts = ReproductionEvents.ConceptionAttempts + 1,
+                };
+
+                int nearbyOinks = Entities.OfType<OinkEntity>().Count(candidate => !candidate.IsDead
+                    && DistanceSquared(candidate.Position, female.Position)
+                        <= ReproductionRules.DensityRadius * ReproductionRules.DensityRadius);
+                double probability = ReproductionRules.BaselineConceptionProbability(
+                    female.Age, female.MaturityAge) * ReproductionRules.DensityMultiplier(nearbyOinks);
+                if (female.Random.NextDouble() < probability)
+                {
+                    female.PregnancyDueWorldTimeTicks = WorldTime.Add(ReproductionRules.Gestation).Ticks;
+                    female.NextBirthAttemptWorldTimeTicks = female.PregnancyDueWorldTimeTicks;
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        Conceptions = ReproductionEvents.Conceptions + 1,
+                    };
+                }
+            }
+        }
+
+        private static bool IsEligible(OinkEntity entity) =>
+            !entity.IsDead && entity.IsAdult
+            && entity.Hunger <= ReproductionRules.MaximumNeed
+            && entity.Thirst <= ReproductionRules.MaximumNeed;
+
+        private static bool IsDailyAttempt(OinkEntity female)
+        {
+            long adultAgeTicks = female.Age.Ticks - female.MaturityAge.Ticks;
+            return adultAgeTicks >= 0 && adultAgeTicks % ReproductionRules.Day.Ticks == 0;
+        }
+
+        private Vector2? FindBirthPosition(Vector2 motherPosition)
+        {
+            int minX = Math.Max(0, (int)Math.Ceiling(motherPosition.X - ReproductionRules.PlacementRadius));
+            int maxX = Math.Min(Cells.Width - 1, (int)Math.Floor(motherPosition.X + ReproductionRules.PlacementRadius));
+            int minY = Math.Max(0, (int)Math.Ceiling(motherPosition.Y - ReproductionRules.PlacementRadius));
+            int maxY = Math.Min(Cells.Height - 1, (int)Math.Floor(motherPosition.Y + ReproductionRules.PlacementRadius));
+            double radiusSquared = ReproductionRules.PlacementRadius * ReproductionRules.PlacementRadius;
+            Vector2? result = null;
+            double bestDistanceSquared = double.PositiveInfinity;
+
+            for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+            {
+                if (Cells[x, y] is not FloorWorldCell)
+                    continue;
+
+                double distanceSquared = DistanceSquared(motherPosition, new Vector2(x, y));
+                if (distanceSquared > radiusSquared)
+                    continue;
+                if (distanceSquared < bestDistanceSquared)
+                {
+                    result = new Vector2(x, y);
+                    bestDistanceSquared = distanceSquared;
+                }
+            }
+
+            return result;
+        }
+
+        private static double DistanceSquared(Vector2 first, Vector2 second)
+        {
+            double dx = (double)first.X - second.X;
+            double dy = (double)first.Y - second.Y;
+            return dx * dx + dy * dy;
         }
 
         #endregion

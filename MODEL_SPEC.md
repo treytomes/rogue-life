@@ -448,3 +448,84 @@ validate them:
 - [x] Choose immutable integer rule versions; parameter sets are recorded per
   run. Define a manifest with source revision, generator, dimensions, time step,
   PRNG/seed, tick counts, and initial/final state hashes.
+
+## Organism behavior engine decision
+
+The current behavior system is an ordered, first-wins decision pipeline: each
+organism evaluates its behaviors against the same immutable decision snapshot,
+returns at most one intent, and the simulation resolves all intents in rotating
+stable-ID priority. Behaviors are ordinary Core classes with direct access to
+simulation-specific context, including the run-owned random source.
+
+NRules is a .NET inference engine based on Rete: it matches facts against rule
+conditions, places activations on an agenda, and fires rule actions. That model
+can suit large, compositional rule sets where matching facts against many
+conditions is the primary problem. It is not a drop-in fit for this simulation's
+ordered first-wins semantics. Introducing an agenda would require an explicit
+adapter to preserve behavior priority, one-intent-per-organism decisions,
+snapshot-only reads, deterministic random use, and the separate rotating
+conflict-resolution phase. The current behavior count and per-organism workload
+do not establish a need for Rete matching, so the added engine/session lifecycle
+and determinism surface are not justified yet.
+
+Decision: do not add NRules to Core at this stage. Keep behaviors as explicit
+ordered strategies. Revisit if experiments require user-authored/composable
+rules or profiling shows condition matching is a bottleneck; any evaluation
+must demonstrate replay equivalence and preserve the decision/intent-resolution
+boundary before adoption.
+
+## Version 2 reproduction rules
+
+Version 1 remains birth-free. The rules below define active version 2 behavior.
+
+- **Eligibility:** both parents must be living, mature Oinks, with hunger and
+  thirst each at or below 0.5. Females that are pregnant or in post-birth
+  cooldown are ineligible. Males have no cooldown, but may pair at most once per
+  world day. Each female's attempt schedule remains age-relative.
+- **Attempt schedule:** each female's first attempt is at maturity; later
+  attempts occur every 24 simulated hours relative to that maturity time.
+- **Pairing:** each eligible female chooses the nearest eligible, not-yet-paired
+  male within a circular radius of 2 cells, inclusive. Equal distances break by
+  ascending male ID. Females are considered in rotating stable-ID priority; if
+  no eligible male remains, that female skips the attempt. A failed conception
+  still counts as a pairing for that world day.
+- **Conception probability:** use the female's run-owned random stream. The
+  baseline probability is 10% at maturity, rises smoothly to 90% at 60% of the
+  24-day lifespan (age 14.4 days), then smoothly falls to zero at age 24 days.
+  Use smoothstep `S(t) = 3t^2 - 2t^3` on each segment: maturity to peak uses
+  `0.1 + 0.8*S(t)`; peak to endpoint uses `0.9*(1 - S(t))`. Apply the crowding
+  multiplier `1 / (1 + (nearbyOinks / 8)^2)` to this baseline.
+- **Density:** count living Oinks, including both parents, in an inclusive
+  circular radius of 8 cells centered on the female at the conception attempt.
+  Density reduces probability but never imposes a hard population cutoff.
+- **Gestation and recovery:** gestation lasts 3 simulated days. A 3-day female
+  cooldown begins at birth.
+- **Litter and placement:** one offspring per pregnancy. At birth, choose the
+  nearest floor cell within 8 cells of the female; break equal-distance ties by
+  ascending X then Y. Oinks may overlap. Newborns start at age zero with default
+  Oink traits and no parental trait inheritance. Gender and initial direction
+  are generated from a deterministic RNG stream derived from the run seed and
+  the newborn's stable ID.
+- **Failed placement:** if no floor cell is available, defer birth and retry
+  once per simulated day. If the mother dies before placement succeeds, the
+  pregnancy ends without a birth and is recorded as a loss. Count each deferred
+  placement attempt and each pregnancy loss as separate run events.
+- **Tick order:** after all entities present at tick start resolve their intents
+  and complete age/need/movement updates, process maternal deaths, due births,
+  then eligible conception attempts. Eligibility, partner selection, density,
+  and probability use post-movement positions and post-action/post-metabolism
+  needs. Birth placement uses the mother's post-movement position. Newborns do
+  not decide, age, or move until the next tick. Density includes all living
+  Oinks, including newborns placed earlier in that reproduction phase.
+- **Saved state:** persist each entity's pregnancy due time, next birth/retry
+  time, cooldown end, last mating world-day, and wandering behavior's random
+  threshold. Persist run-level conception, birth, deferred placement, and
+  pregnancy-loss counters. Newborn IDs are the next stable collection IDs and
+  their random streams are derived from run seed plus ID. Reconstruct saved
+  entities in ID order so births survive load.
+- **Version boundary:** this implementation uses rules version 2. A v2-only
+  build rejects v1 saves; it never continues them silently under v2 behavior.
+
+The probability curve, density rule, eligibility, timing, pairing, placement,
+event counters, and save/load fields above are part of the immutable version 2
+contract.

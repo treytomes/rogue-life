@@ -134,10 +134,11 @@ explain why it changed.
 
 ## Phase 3: Complete organism and population dynamics
 
-- [ ] Review feasibility of using NRules for managing organism behavior.
-- [ ] Implement reproduction in a later rules version. Specify mating,
-  eligibility, gestation, cooldown, offspring placement, and population limits
-  before enabling the existing unfinished `ReproductionBehavior`.
+- [x] Review feasibility of using NRules for managing organism behavior. Keep
+  the current ordered behavior pipeline for now; see `MODEL_SPEC.md`.
+- [x] Implement version 2 reproduction with deterministic mating, probabilistic
+  density regulation, gestation, cooldown, offspring placement, and saved event
+  state. The immutable rules are specified in `MODEL_SPEC.md`.
 - [ ] Define hunger and thirst as resource flows: intake, metabolism, starvation
   thresholds, and the effect of consuming algae or water on the environment.
 - [ ] Decide which organism traits are fixed and which vary or inherit, and define
@@ -179,7 +180,7 @@ explain why it changed.
 
 ## Current review findings to resolve
 
-- [ ] Future runtime-created entities need component RNG streams keyed from their
+- [x] Future runtime-created entities need component RNG streams keyed from their
   stable IDs, as their IDs are assigned when added to the collection.
 - [x] Bound eating by available algae while preserving partial consumption;
   hunger reduction is proportional to the amount consumed.
@@ -187,8 +188,8 @@ explain why it changed.
   quadratic response, with value 1 at ideal and 0.2 at either temperature bound.
 - [x] Clamp the environmental temperature adjustment to ideal when within
   0.001 degrees, preventing overshoot and oscillation.
-- [ ] Entity reproduction remains unfinished and disabled in v1; population
-  replacement, eligibility, and mating rules belong to a later version.
+- [x] Version 1 remains birth-free. Version 2 implements the agreed population
+  reproduction rules; see `MODEL_SPEC.md`.
 - [ ] UI cadence currently advances world time by one minute per timer tick;
   experiments need an explicit, independently controlled tick duration.
 

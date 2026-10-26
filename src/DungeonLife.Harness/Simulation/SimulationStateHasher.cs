@@ -12,6 +12,7 @@ internal static class SimulationStateHasher
         using var stream = new MemoryStream();
         using (var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true))
         {
+            SimulationSaveState completeState = simulation.CaptureState(settings.Generator);
             writer.Write(WorldSettings.RulesVersion);
             writer.Write(settings.Generator);
             writer.Write(settings.Seed!.Value);
@@ -21,6 +22,12 @@ internal static class SimulationStateHasher
             writer.Write(TimeSpan.TicksPerMinute);
             writer.Write(simulation.TickCount);
             writer.Write(simulation.WorldTime.Ticks);
+            writer.Write(simulation.ReproductionEvents.ConceptionAttempts);
+            writer.Write(simulation.ReproductionEvents.Conceptions);
+            writer.Write(simulation.ReproductionEvents.Births);
+            writer.Write(simulation.ReproductionEvents.DeferredBirthAttempts);
+            writer.Write(simulation.ReproductionEvents.PregnancyLosses);
+            Write(writer, completeState.RunRandom);
 
             for (int x = 0; x < simulation.Cells.Width; x++)
             for (int y = 0; y < simulation.Cells.Height; y++)
@@ -34,12 +41,16 @@ internal static class SimulationStateHasher
                 writer.Write(BitConverter.SingleToInt32Bits(cell.Humidity));
                 writer.Write(BitConverter.SingleToInt32Bits(cell.MovementSpeedMultiplier));
                 writer.Write(BitConverter.SingleToInt32Bits(cell is FloorWorldCell floor ? floor.AlgaeLevel : 0));
+                Write(writer, completeState.Cells[x * simulation.Cells.Height + y].RandomState);
             }
 
             Entity[] entities = simulation.Entities.OrderBy(entity => entity.Id).ToArray();
+            EntitySavedState[] savedEntities = completeState.Entities;
             writer.Write(entities.Length);
-            foreach (Entity entity in entities)
+            for (int index = 0; index < entities.Length; index++)
             {
+                Entity entity = entities[index];
+                EntitySavedState saved = savedEntities[index];
                 writer.Write(entity.Id);
                 writer.Write(entity.GetType().FullName ?? entity.GetType().Name);
                 writer.Write((int)entity.Gender);
@@ -48,6 +59,12 @@ internal static class SimulationStateHasher
                 writer.Write(entity.Age.Ticks);
                 writer.Write(entity.MaturityAge.Ticks);
                 writer.Write(entity.IsDead);
+                writer.Write(saved.PregnancyDueWorldTimeTicks);
+                writer.Write(saved.NextBirthAttemptWorldTimeTicks);
+                writer.Write(saved.ReproductionCooldownUntilWorldTimeTicks);
+                writer.Write(saved.LastMatingWorldDay);
+                writer.Write(BitConverter.SingleToInt32Bits(saved.WanderChangeDirectionChance));
+                Write(writer, saved.RandomState);
                 writer.Write(BitConverter.SingleToInt32Bits(entity.Hunger));
                 writer.Write(BitConverter.SingleToInt32Bits(entity.Thirst));
                 writer.Write(BitConverter.SingleToInt32Bits(entity.Metabolism));
@@ -64,5 +81,15 @@ internal static class SimulationStateHasher
     {
         writer.Write(BitConverter.SingleToInt32Bits(value.X));
         writer.Write(BitConverter.SingleToInt32Bits(value.Y));
+    }
+
+    private static void Write(BinaryWriter writer, Pcg32RandomState value)
+    {
+        writer.Write(value.Seed);
+        writer.Write(value.Sequence);
+        writer.Write(value.State);
+        writer.Write(value.Increment);
+        writer.Write(BitConverter.DoubleToInt64Bits(value.SpareGaussian));
+        writer.Write(value.HasSpareGaussian);
     }
 }

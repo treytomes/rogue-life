@@ -8,7 +8,7 @@ namespace DungeonLife
     public static class WorldSettings
     {
         /// <summary>Defines the RulesVersion value.</summary>
-        public const int RulesVersion = 1;
+        public const int RulesVersion = 2;
 
         /// <summary>Gets the MinimumTemperature value.</summary>
         public static float MinimumTemperature { get; } = 0.0f;

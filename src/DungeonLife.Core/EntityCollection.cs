@@ -17,6 +17,14 @@ namespace DungeonLife
             _entities = new List<Entity>();
         }
 
+        internal long NextId => _nextId;
+
+        internal void ClearForRestore()
+        {
+            _entities.Clear();
+            _nextId = 1;
+        }
+
         /// <summary>Gets the cell or entity at the specified coordinates.</summary>
         public Entity this[float x, float y]
         {

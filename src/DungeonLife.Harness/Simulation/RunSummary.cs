@@ -20,6 +20,7 @@ internal sealed record RunSummary(
     bool? SaveLoadMatched,
     long[] EntityIds,
     long[] FirstTickPriorityIds,
-    long[] SecondTickPriorityIds);
+    long[] SecondTickPriorityIds,
+    ReproductionEventState ReproductionEvents);
 
 
