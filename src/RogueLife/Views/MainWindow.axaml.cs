@@ -47,10 +47,10 @@ namespace RogueLife.Views
             {
                 IStorageFile file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-                    Title = "Save Dungeon Life",
+                    Title = "Save Rogue Life",
                     SuggestedFileName = $"dungeon-life-{_viewModel.Simulation.TickCount}.dlsave.json",
                     DefaultExtension = "dlsave.json",
-                    FileTypeChoices = new[] { new FilePickerFileType("Dungeon Life save") { Patterns = new[] { "*.dlsave.json" } } },
+                    FileTypeChoices = new[] { new FilePickerFileType("Rogue Life save") { Patterns = new[] { "*.dlsave.json" } } },
                 });
                 if (file?.TryGetLocalPath() is string path)
                     await _viewModel.SaveSimulationAsync(path);
@@ -67,9 +67,9 @@ namespace RogueLife.Views
             {
                 var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
                 {
-                    Title = "Load Dungeon Life",
+                    Title = "Load Rogue Life",
                     AllowMultiple = false,
-                    FileTypeFilter = new[] { new FilePickerFileType("Dungeon Life save") { Patterns = new[] { "*.dlsave.json" } } },
+                    FileTypeFilter = new[] { new FilePickerFileType("Rogue Life save") { Patterns = new[] { "*.dlsave.json" } } },
                 });
                 if (files.Count > 0 && files[0].TryGetLocalPath() is string path)
                     await _viewModel.LoadSimulationAsync(path);

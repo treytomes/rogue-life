@@ -26,7 +26,7 @@ namespace RogueLife
                 Description = "Logging minimum level override (Verbose, Debug, Information, Warning, Error, Fatal).",
             };
 
-            RootCommand root = new("Dungeon Life artificial life simulation.")
+            RootCommand root = new("Rogue Life artificial life simulation.")
             {
                 seedOption,
                 configOption,

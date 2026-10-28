@@ -1,4 +1,4 @@
-# Dungeon Life
+# Rogue Life
 
 An artificial life terrarium that takes place in a roguelike-inspired dungeon.
 

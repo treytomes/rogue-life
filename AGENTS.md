@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a platform-neutral simulation Core project. There are no tests, lint/format config, or CI; `dotnet build` is the only automated check.
+Rogue Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a platform-neutral simulation Core project. There are no tests, lint/format config, or CI; `dotnet build` is the only automated check.
 
 ## Build and run
 

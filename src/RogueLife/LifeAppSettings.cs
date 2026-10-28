@@ -4,7 +4,7 @@ namespace RogueLife
     public static class LifeAppSettings
     {
         /// <summary>Gets the WindowTitle value.</summary>
-        public static string WindowTitle { get; } = "Dungeon Life";
+        public static string WindowTitle { get; } = "Rogue Life";
         /// <summary>Gets the GlyphWidth value.</summary>
         public static int GlyphWidth { get; } = 8;
         /// <summary>Gets the GlyphHeight value.</summary>
