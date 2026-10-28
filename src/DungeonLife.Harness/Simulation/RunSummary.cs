@@ -15,6 +15,7 @@ internal sealed record RunSummary(
     double AverageHumidity,
     int EntityCount,
     int LivingEntityCount,
+    int DeadEntityCount,
     string StateHash,
     bool? ReplayMatched,
     bool? SaveLoadMatched,

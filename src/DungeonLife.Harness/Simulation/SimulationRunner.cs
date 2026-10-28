@@ -140,6 +140,7 @@ internal sealed class SimulationRunner(
                 livingEntityCount++;
             }
         }
+        int deadEntityCount = entityCount - livingEntityCount;
         return new RunSummary(
             WorldSettings.RulesVersion,
             settings.Generator,
@@ -155,6 +156,7 @@ internal sealed class SimulationRunner(
             cellCount == 0 ? 0 : totalHumidity / cellCount,
             entityCount,
             livingEntityCount,
+            deadEntityCount,
             stateHash,
             replayMatched,
             saveLoadMatched,

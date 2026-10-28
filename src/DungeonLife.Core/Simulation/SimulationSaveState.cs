@@ -33,12 +33,30 @@ public sealed record SimulationSaveState(
 /// <param name="Births">Successful births.</param>
 /// <param name="DeferredBirthAttempts">Birth placements deferred for lack of floor space.</param>
 /// <param name="PregnancyLosses">Pregnancies ended when the mother died.</param>
+/// <param name="FemaleDailyChecks">Living mature females reaching their daily attempt time.</param>
+/// <param name="FemaleReadyChecks">Daily checks passing pregnancy, cooldown, and need gates.</param>
+/// <param name="FemalesSuppressedPregnant">Daily checks skipped because the female was pregnant.</param>
+/// <param name="FemalesSuppressedCooldown">Daily checks skipped because post-birth cooldown was active.</param>
+/// <param name="FemalesSuppressedByNeeds">Daily checks skipped because hunger or thirst exceeded 0.5.</param>
+/// <param name="NoEligibleMaleAnywhere">Ready checks with no living mature male passing the need gate.</param>
+/// <param name="EligibleMalesOnlyOutOfRange">Ready checks where eligible males existed but none was in mating range.</param>
+/// <param name="NearbyMalesNeedIneligible">Ready checks with mature males nearby but none passing the need gate.</param>
+/// <param name="NearbyEligibleMalesAlreadyPaired">Ready checks where every eligible nearby male had already paired that world day.</param>
 public sealed record ReproductionEventState(
     long ConceptionAttempts,
     long Conceptions,
     long Births,
     long DeferredBirthAttempts,
-    long PregnancyLosses);
+    long PregnancyLosses,
+    long FemaleDailyChecks,
+    long FemaleReadyChecks,
+    long FemalesSuppressedPregnant,
+    long FemalesSuppressedCooldown,
+    long FemalesSuppressedByNeeds,
+    long NoEligibleMaleAnywhere,
+    long EligibleMalesOnlyOutOfRange,
+    long NearbyMalesNeedIneligible,
+    long NearbyEligibleMalesAlreadyPaired);
 
 /// <summary>Defines the name value.</summary>
 /// <param name="Type">Cell type identifier.</param>

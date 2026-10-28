@@ -27,6 +27,15 @@ internal static class SimulationStateHasher
             writer.Write(simulation.ReproductionEvents.Births);
             writer.Write(simulation.ReproductionEvents.DeferredBirthAttempts);
             writer.Write(simulation.ReproductionEvents.PregnancyLosses);
+            writer.Write(simulation.ReproductionEvents.FemaleDailyChecks);
+            writer.Write(simulation.ReproductionEvents.FemaleReadyChecks);
+            writer.Write(simulation.ReproductionEvents.FemalesSuppressedPregnant);
+            writer.Write(simulation.ReproductionEvents.FemalesSuppressedCooldown);
+            writer.Write(simulation.ReproductionEvents.FemalesSuppressedByNeeds);
+            writer.Write(simulation.ReproductionEvents.NoEligibleMaleAnywhere);
+            writer.Write(simulation.ReproductionEvents.EligibleMalesOnlyOutOfRange);
+            writer.Write(simulation.ReproductionEvents.NearbyMalesNeedIneligible);
+            writer.Write(simulation.ReproductionEvents.NearbyEligibleMalesAlreadyPaired);
             Write(writer, completeState.RunRandom);
 
             for (int x = 0; x < simulation.Cells.Width; x++)

@@ -520,7 +520,8 @@ Version 1 remains birth-free. The rules below define active version 2 behavior.
 - **Saved state:** persist each entity's pregnancy due time, next birth/retry
   time, cooldown end, last mating world-day, and wandering behavior's random
   threshold. Persist run-level conception, birth, deferred placement, and
-  pregnancy-loss counters. Newborn IDs are the next stable collection IDs and
+  pregnancy-loss counters, as well as daily female readiness and mate-
+  availability diagnostics. Newborn IDs are the next stable collection IDs and
   their random streams are derived from run seed plus ID. Reconstruct saved
   entities in ID order so births survive load.
 - **Version boundary:** this implementation uses rules version 2. A v2-only

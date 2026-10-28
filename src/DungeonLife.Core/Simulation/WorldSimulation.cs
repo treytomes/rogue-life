@@ -62,7 +62,7 @@ namespace DungeonLife
         /// <summary>Gets the Entities value.</summary>
         public EntityCollection Entities { get; }
         /// <summary>Gets cumulative reproduction event counts for this run.</summary>
-        public ReproductionEventState ReproductionEvents { get; private set; } = new(0, 0, 0, 0, 0);
+        public ReproductionEventState ReproductionEvents { get; private set; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         /// <summary>Gets or sets the IsRunning value.</summary>
         public bool IsRunning { get; set; } = true;
         /// <summary>Gets or sets the IsStepping value.</summary>
@@ -294,6 +294,10 @@ namespace DungeonLife
             var pairedMaleIds = new HashSet<long>(oinks
                 .Where(entity => entity.LastMatingWorldDay == currentWorldDay)
                 .Select(entity => entity.Id));
+            OinkEntity[] livingMatureMales = oinks
+                .Where(entity => entity.Gender == Gender.Male && !entity.IsDead && entity.IsAdult)
+                .ToArray();
+            OinkEntity[] eligibleMales = livingMatureMales.Where(IsEligible).ToArray();
             IEnumerable<OinkEntity> femalePriority = Entities
                 .InPriorityOrder(TickCount - 1)
                 .OfType<OinkEntity>()
@@ -301,22 +305,92 @@ namespace DungeonLife
 
             foreach (OinkEntity female in femalePriority)
             {
-                if (!IsEligible(female) || female.IsPregnant
-                    || WorldTime.Ticks < female.ReproductionCooldownUntilWorldTimeTicks
-                    || !IsDailyAttempt(female))
+                if (female.IsDead || !IsDailyAttempt(female))
                     continue;
 
-                OinkEntity male = oinks
-                    .Where(candidate => candidate.Gender == Gender.Male
-                        && IsEligible(candidate)
-                        && !pairedMaleIds.Contains(candidate.Id)
-                        && DistanceSquared(candidate.Position, female.Position)
-                            <= ReproductionRules.MatingRadius * ReproductionRules.MatingRadius)
+                ReproductionEvents = ReproductionEvents with
+                {
+                    FemaleDailyChecks = ReproductionEvents.FemaleDailyChecks + 1,
+                };
+
+                if (female.IsPregnant)
+                {
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        FemalesSuppressedPregnant = ReproductionEvents.FemalesSuppressedPregnant + 1,
+                    };
+                    continue;
+                }
+
+                if (WorldTime.Ticks < female.ReproductionCooldownUntilWorldTimeTicks)
+                {
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        FemalesSuppressedCooldown = ReproductionEvents.FemalesSuppressedCooldown + 1,
+                    };
+                    continue;
+                }
+
+                if (!IsEligible(female))
+                {
+                    ReproductionEvents = ReproductionEvents with
+                    {
+                        FemalesSuppressedByNeeds = ReproductionEvents.FemalesSuppressedByNeeds + 1,
+                    };
+                    continue;
+                }
+
+                ReproductionEvents = ReproductionEvents with
+                {
+                    FemaleReadyChecks = ReproductionEvents.FemaleReadyChecks + 1,
+                };
+                OinkEntity[] nearbyMatureMales = livingMatureMales
+                    .Where(candidate => DistanceSquared(candidate.Position, female.Position)
+                        <= ReproductionRules.MatingRadius * ReproductionRules.MatingRadius)
+                    .ToArray();
+                OinkEntity[] nearbyEligibleMales = nearbyMatureMales.Where(IsEligible).ToArray();
+                OinkEntity[] availableNearbyMales = nearbyEligibleMales
+                    .Where(candidate => !pairedMaleIds.Contains(candidate.Id))
+                    .ToArray();
+
+                if (availableNearbyMales.Length == 0)
+                {
+                    if (nearbyMatureMales.Length > 0 && nearbyEligibleMales.Length == 0)
+                    {
+                        ReproductionEvents = ReproductionEvents with
+                        {
+                            NearbyMalesNeedIneligible = ReproductionEvents.NearbyMalesNeedIneligible + 1,
+                        };
+                    }
+                    else if (nearbyEligibleMales.Length > 0)
+                    {
+                        ReproductionEvents = ReproductionEvents with
+                        {
+                            NearbyEligibleMalesAlreadyPaired = ReproductionEvents.NearbyEligibleMalesAlreadyPaired + 1,
+                        };
+                    }
+                    else if (eligibleMales.Length > 0)
+                    {
+                        ReproductionEvents = ReproductionEvents with
+                        {
+                            EligibleMalesOnlyOutOfRange = ReproductionEvents.EligibleMalesOnlyOutOfRange + 1,
+                        };
+                    }
+                    else
+                    {
+                        ReproductionEvents = ReproductionEvents with
+                        {
+                            NoEligibleMaleAnywhere = ReproductionEvents.NoEligibleMaleAnywhere + 1,
+                        };
+                    }
+
+                    continue;
+                }
+
+                OinkEntity male = availableNearbyMales
                     .OrderBy(candidate => DistanceSquared(candidate.Position, female.Position))
                     .ThenBy(candidate => candidate.Id)
-                    .FirstOrDefault();
-                if (male == null)
-                    continue;
+                    .First();
 
                 female.LastMatingWorldDay = currentWorldDay;
                 male.LastMatingWorldDay = currentWorldDay;
