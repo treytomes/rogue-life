@@ -1,0 +1,21 @@
+# Defaults for the desktop application. Kept at the repository root so local runs and
+# future command-line harnesses can share one configuration file.
+Simulation:
+  # Applied to the simulation RNG once run-owned seeded randomness is wired in.
+  Seed: 1
+
+Runtime:
+  # Wall-clock delay between UI-driven model ticks. Each tick remains one simulated minute.
+  TickIntervalMilliseconds: 100
+
+Serilog:
+  # The command-line --log-level option overrides this.
+  MinimumLevel: Information
+  # Relative log paths are resolved from the directory containing this configuration file.
+  LogDirectory: logs
+  RetainedFileCountLimit: 14
+
+Harness:
+  # A short default keeps a manual headless invocation quick; pass --ticks for longer runs.
+  Ticks: 1
+  Generator: cavern
