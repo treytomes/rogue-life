@@ -4,29 +4,29 @@ Dungeon Life is a .NET 10 solution with an Avalonia 12.1.4 desktop app and a pla
 
 ## Build and run
 
-- Build: `dotnet build DungeonLife.sln`
-- Run the UI: `dotnet run --project src/DungeonLife`
-- Run a headless simulation: `dotnet run --project src/DungeonLife.Harness -- --ticks 1`
+- Build: `dotnet build RogueLife.sln`
+- Run the UI: `dotnet run --project src/RogueLife`
+- Run a headless simulation: `dotnet run --project src/RogueLife.Harness -- --ticks 1`
 - Verify changes with a build and a short UI or harness run as appropriate.
 - Do not add `DOTNET_ROLL_FORWARD`; the project targets the installed `net10.0` runtime.
 
 ## Simulation architecture
 
-- `src/DungeonLife/Program.cs` builds the Avalonia app; `src/DungeonLife/App.axaml.cs` creates `Views/MainWindow`.
-- `src/DungeonLife.Core/` contains the platform-neutral simulation model, cells, entities, behaviors, and world generators. Keep Avalonia and Prism types out of Core.
-- `src/DungeonLife/Hosting/AppHostBuilder.cs` is the UI composition root. The Generic Host owns DI registrations; keep hosting and container dependencies out of Core.
-- `src/DungeonLife.Harness/` is the console entry point for headless simulation runs. It references Core and owns a separate host builder; it must not reference Avalonia or Prism.
-- Run a headless sample with `dotnet run --project src/DungeonLife.Harness -- --ticks 1`. It writes a JSON summary to stdout and sends logs to stderr / the configured rolling file. The seed is recorded as configuration metadata until the run-owned RNG work is completed.
+- `src/RogueLife/Program.cs` builds the Avalonia app; `src/RogueLife/App.axaml.cs` creates `Views/MainWindow`.
+- `src/RogueLife.Core/` contains the platform-neutral simulation model, cells, entities, behaviors, and world generators. Keep Avalonia and Prism types out of Core.
+- `src/RogueLife/Hosting/AppHostBuilder.cs` is the UI composition root. The Generic Host owns DI registrations; keep hosting and container dependencies out of Core.
+- `src/RogueLife.Harness/` is the console entry point for headless simulation runs. It references Core and owns a separate host builder; it must not reference Avalonia or Prism.
+- Run a headless sample with `dotnet run --project src/RogueLife.Harness -- --ticks 1`. It writes a JSON summary to stdout and sends logs to stderr / the configured rolling file. The seed is recorded as configuration metadata until the run-owned RNG work is completed.
 - The repository-root `appsettings.yaml` is found by walking up from the executable directory; `--config`, `--seed`, and `--log-level` are parsed at startup. The UI tick interval is runtime-configurable, while each model tick remains one simulated minute.
 - Microsoft.Extensions.Logging is routed through Serilog. Keep the console sink and daily rolling file sink configured by `Serilog` in the root YAML; relative `LogDirectory` paths resolve beside the active configuration file.
-- `src/DungeonLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
+- `src/RogueLife/ViewModels/MainWindowViewModel.cs` owns the `WorldSimulation` and a 100 ms `DispatcherTimer`:
   - On each timer tick, call `WorldSimulation.Tick()` when running or stepping.
   - `Tick()` advances `WorldTime` by one minute and advances `AnimationTime`/`TickCount`. Cells calculate from an immutable prior-state snapshot in parallel, then commit together; entities decide from one post-cell-commit snapshot, then resolve intents sequentially in rotating stable-ID priority order (65,536 cells).
   - Put cell logic in `WorldCell.CalculateNextState`, and entity decision logic in `Entity.Decide` or behaviors; resolve effects in `Entity.Resolve`. Avoid unsynchronized shared mutable state; use the run-owned `IWorldState.Random` source.
-- `src/DungeonLife.Core/Simulation/WorldSimulation.cs` implements `IWorldState`, the seam shared by cells, entities, behaviors, and generators. World data lives in `WorldCellCollection` and `EntityCollection`.
-- `WorldGenerator` exposes `BuildWorld` + `PlaceEntities`; `CavernGenerator` is active (chosen in `MainWindowViewModel`), `SpaciousCavernGenerator` is the alternate. Both live in `src/DungeonLife.Core/World Building/`.
-- Cells (`src/DungeonLife.Core/Cells/`) model terrain/environment: `FloorWorldCell` (algae/temperature/humidity), `WaterSourceCell`, `WallWorldCell`, and `BorderWorldCell` (day/night heat source).
-- Entities run an ordered, first-wins behavior list built in `OinkEntity` through `BehaviorFactory`; behaviors live in `src/DungeonLife.Core/Entity Behaviors/`.
+- `src/RogueLife.Core/Simulation/WorldSimulation.cs` implements `IWorldState`, the seam shared by cells, entities, behaviors, and generators. World data lives in `WorldCellCollection` and `EntityCollection`.
+- `WorldGenerator` exposes `BuildWorld` + `PlaceEntities`; `CavernGenerator` is active (chosen in `MainWindowViewModel`), `SpaciousCavernGenerator` is the alternate. Both live in `src/RogueLife.Core/World Building/`.
+- Cells (`src/RogueLife.Core/Cells/`) model terrain/environment: `FloorWorldCell` (algae/temperature/humidity), `WaterSourceCell`, `WallWorldCell`, and `BorderWorldCell` (day/night heat source).
+- Entities run an ordered, first-wins behavior list built in `OinkEntity` through `BehaviorFactory`; behaviors live in `src/RogueLife.Core/Entity Behaviors/`.
 - World dimensions and temperature constants are in Core's `WorldSettings`; screen dimensions are in the UI's `LifeAppSettings`. Some generator code still hardcodes 256 (e.g. `CavernGenerator.PlaceEntities`); use `Cells.Width`/`Cells.Height` in new code.
 
 ## UI and rendering

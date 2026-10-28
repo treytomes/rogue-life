@@ -1,0 +1,27 @@
+namespace RogueLife.Harness.Simulation;
+
+internal sealed record RunSummary(
+    int RulesVersion,
+    string Generator,
+    ulong? RunSeed,
+    string SeedSource,
+    int RequestedTicks,
+    long CompletedTicks,
+    long WorldTimeMinutes,
+    int CellCount,
+    int FloorCellCount,
+    double AlgaeBiomass,
+    double AverageTemperature,
+    double AverageHumidity,
+    int EntityCount,
+    int LivingEntityCount,
+    int DeadEntityCount,
+    string StateHash,
+    bool? ReplayMatched,
+    bool? SaveLoadMatched,
+    long[] EntityIds,
+    long[] FirstTickPriorityIds,
+    long[] SecondTickPriorityIds,
+    ReproductionEventState ReproductionEvents);
+
+

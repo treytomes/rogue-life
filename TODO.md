@@ -2,7 +2,7 @@
 
 ## Goal
 
-Make DungeonLife a platform for experiments in artificial life. A run should have
+Make RogueLife a platform for experiments in artificial life. A run should have
 specified rules, be reproducible from its inputs, and expose enough state to
 explain why it changed.
 
@@ -58,7 +58,7 @@ explain why it changed.
 ## Phase 1: Make runs reproducible
 
 - [x] Extract simulation rules, world state, entities, cells, behaviors, and
-  generators into a platform-neutral `DungeonLife.Core` project. Keep Avalonia,
+  generators into a platform-neutral `RogueLife.Core` project. Keep Avalonia,
   Prism, rendering, and desktop concerns out of Core; have the UI reference Core.
 - [x] Add Generic Host startup to the Avalonia app and use Microsoft DI for
   composition. Keep host setup in the executable shell rather than Core.
@@ -67,7 +67,7 @@ explain why it changed.
   seed, configuration path, and log level.  The `appsettings.yaml` file should be stored and referenced from the repository root.
 - [x] Add Microsoft.Extensions.Logging backed by Serilog, including console and
   rolling file output, and log the resolved run configuration and seed.
-- [x] Add a console harness that references `DungeonLife.Core`, builds its own
+- [x] Add a console harness that references `RogueLife.Core`, builds its own
   Generic Host, and can run without Avalonia or a desktop session. Share
   configuration and logging conventions with the UI while keeping host builders
   in their respective executable projects.

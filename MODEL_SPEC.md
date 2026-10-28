@@ -1,4 +1,4 @@
-# DungeonLife model specification
+# RogueLife model specification
 
 **Status:** working draft. This documents the current implementation and records
 the model decisions agreed so far. Observed implementation details are not
@@ -7,7 +7,7 @@ rules remain marked inline and in `TODO.md`.
 
 ## Experiment contract
 
-- **Purpose:** use DungeonLife to run interpretable artificial-life experiments.
+- **Purpose:** use RogueLife to run interpretable artificial-life experiments.
 - **Rules version:** immutable integer. Version 1 will be assigned only after
   the model is specified and known defects are corrected. Increment it whenever
   a state-transition rule, update order, boundary rule, or random-choice

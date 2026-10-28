@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31229.75
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DungeonLife", "src\DungeonLife\DungeonLife.csproj", "{09DE5DAE-B2DA-47BD-95BA-E27AAF00D414}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RogueLife", "src\RogueLife\RogueLife.csproj", "{09DE5DAE-B2DA-47BD-95BA-E27AAF00D414}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9D64244A-1787-43B1-BAE3-3FF731ED7ABF}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,9 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonLife.Core", "src\DungeonLife.Core\DungeonLife.Core.csproj", "{30D87653-F968-4733-87AE-2C923C9252A0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueLife.Core", "src\RogueLife.Core\RogueLife.Core.csproj", "{30D87653-F968-4733-87AE-2C923C9252A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonLife.Harness", "src\DungeonLife.Harness\DungeonLife.Harness.csproj", "{E1852884-D298-488F-97BC-A97C5EE1849E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RogueLife.Harness", "src\RogueLife.Harness\RogueLife.Harness.csproj", "{E1852884-D298-488F-97BC-A97C5EE1849E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
